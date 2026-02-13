@@ -1,1 +1,1 @@
-# -fatha-platform
+# fatha
