@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-arabic;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Touch-friendly: remove tap highlight on mobile */
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-primary text-white px-8 py-3 rounded-full font-semibold 
+           transition-all duration-300 hover:-translate-y-1 hover:shadow-xl 
+           hover:shadow-primary-500/30;
+  }
+  
+  .btn-secondary {
+    @apply bg-transparent text-primary-500 px-8 py-3 rounded-full font-semibold 
+           border-2 border-primary-500 transition-all duration-300 
+           hover:bg-primary-500 hover:text-white;
+  }
+  
+  .section-badge {
+    @apply inline-flex items-center gap-2 bg-primary-50 text-primary-500 
+           px-5 py-2 rounded-full text-sm font-semibold;
+  }
+  
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl;
+  }
+  
+  .gradient-text {
+    @apply bg-gradient-primary bg-clip-text text-transparent;
+  }
+
+  /* Hero CTA buttons - pill style from reference */
+  .hero-btn {
+    -webkit-tap-highlight-color: transparent;
+  }
+  .hero-btn-purple {
+    background-color: #8D37F2;
+  }
+  .hero-btn-purple:hover {
+    background-color: #7a2ed9;
+  }
+  .hero-btn-magenta {
+    background-color: #E93B7A;
+  }
+  .hero-btn-magenta:hover {
+    background-color: #d62d6a;
+  }
+  .shadow-hero {
+    box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.12), 0 2px 6px 0 rgba(0, 0, 0, 0.08);
+  }
+  .shadow-hero-hover {
+    box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.15), 0 4px 10px 0 rgba(0, 0, 0, 0.1);
+  }
+}
+
+@layer utilities {
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+  
+  .animation-delay-400 {
+    animation-delay: 400ms;
+  }
+  
+  .animation-delay-600 {
+    animation-delay: 600ms;
+  }
+}
+
+/* Scroll-reveal: reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  [class*="transition-all"][class*="duration-700"] {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Simple fade for mobile menu */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
