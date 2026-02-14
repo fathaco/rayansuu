@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Check } from 'lucide-react'
 import type { EventRow } from '@/types/database'
 
 interface ReservationModalProps {
@@ -14,7 +15,17 @@ export default function ReservationModal({ event, onClose, onSuccess }: Reservat
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!success) return
+    const t = setTimeout(() => {
+      onSuccess()
+      onClose()
+    }, 1400)
+    return () => clearTimeout(t)
+  }, [success, onSuccess, onClose])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -28,8 +39,7 @@ export default function ReservationModal({ event, onClose, onSuccess }: Reservat
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'فشل في التسجيل')
-      onSuccess()
-      onClose()
+      setSuccess(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'حدث خطأ')
     } finally {
@@ -43,6 +53,16 @@ export default function ReservationModal({ event, onClose, onSuccess }: Reservat
         className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
+        {success ? (
+          <div className="p-10 flex flex-col items-center justify-center text-center">
+            <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mb-6 animate-success-pop">
+              <Check className="w-10 h-10 text-emerald-600" strokeWidth={2.5} />
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">تم التسجيل بنجاح</h3>
+            <p className="text-gray-600">سنتواصل معك قريباً</p>
+          </div>
+        ) : (
+          <>
         <div className="p-6 border-b border-gray-100">
           <h3 className="text-xl font-bold text-gray-800">التسجيل في: {event.title}</h3>
           <p className="text-sm text-gray-500 mt-1">{event.category}</p>
@@ -101,6 +121,8 @@ export default function ReservationModal({ event, onClose, onSuccess }: Reservat
             </button>
           </div>
         </form>
+          </>
+        )}
       </div>
     </div>
   )

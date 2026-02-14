@@ -36,6 +36,8 @@ export default function DashboardPage() {
   const [imageUploading, setImageUploading] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'reservations' | 'create'>('overview')
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
+  const [confirmedId, setConfirmedId] = useState<string | null>(null)
 
   const setTab = (tab: typeof activeTab) => {
     setActiveTab(tab)
@@ -167,15 +169,21 @@ export default function DashboardPage() {
   }
 
   async function updateReservationStatus(id: string, status: 'confirmed' | 'cancelled') {
+    setConfirmingId(id)
     const res = await fetch(`/api/reservations/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     })
+    setConfirmingId(null)
     if (!res.ok) return
     setReservations((prev) =>
       prev.map((r) => (r.id === id ? { ...r, status } : r))
     )
+    if (status === 'confirmed') {
+      setConfirmedId(id)
+      setTimeout(() => setConfirmedId(null), 1200)
+    }
   }
 
   async function handleLogout() {
@@ -661,7 +669,7 @@ export default function DashboardPage() {
                     {reservations.map((r) => (
                       <div
                         key={r.id}
-                        className="rounded-xl border border-gray-200 p-4 space-y-3 bg-gray-50/50"
+                        className={`rounded-xl border border-gray-200 p-4 space-y-3 bg-gray-50/50 transition-colors ${confirmedId === r.id ? 'animate-confirm-flash' : ''}`}
                       >
                         <p className="font-semibold text-gray-800">{r.event?.title ?? r.event_id}</p>
                         {r.event?.category && (
@@ -691,10 +699,11 @@ export default function DashboardPage() {
                               <button
                                 type="button"
                                 onClick={() => updateReservationStatus(r.id, 'confirmed')}
-                                className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors text-sm font-medium"
+                                disabled={confirmingId === r.id}
+                                className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors text-sm font-medium disabled:opacity-70"
                                 title="قبول الطلب"
                               >
-                                <Check className="w-4 h-4" />
+                                {confirmingId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                                 قبول
                               </button>
                               <button
@@ -728,7 +737,7 @@ export default function DashboardPage() {
                       </thead>
                       <tbody>
                         {reservations.map((r) => (
-                          <tr key={r.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                          <tr key={r.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${confirmedId === r.id ? 'animate-confirm-flash' : ''}`}>
                             <td className="py-4 px-4">
                               <p className="font-medium text-gray-800">{r.event?.title ?? r.event_id}</p>
                               {r.event?.category && (
@@ -765,10 +774,11 @@ export default function DashboardPage() {
                                   <button
                                     type="button"
                                     onClick={() => updateReservationStatus(r.id, 'confirmed')}
-                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors text-sm font-medium min-h-[44px]"
+                                    disabled={confirmingId === r.id}
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors text-sm font-medium min-h-[44px] disabled:opacity-70"
                                     title="قبول الطلب"
                                   >
-                                    <Check className="w-4 h-4" />
+                                    {confirmingId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                                     قبول
                                   </button>
                                   <button
