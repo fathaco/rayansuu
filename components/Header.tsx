@@ -87,6 +87,16 @@ export default function Header() {
                       <>
                         <div className="fixed inset-0 z-10" aria-hidden onClick={() => setUserMenuOpen(false)} />
                         <div className="absolute top-full right-0 mt-1 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-20">
+                          {isAdmin && (
+                            <Link
+                              href="/dashboard"
+                              className="flex items-center gap-2 px-4 py-2.5 text-primary-600 hover:bg-primary-50 font-medium"
+                              onClick={() => setUserMenuOpen(false)}
+                            >
+                              <LayoutDashboard className="w-4 h-4" />
+                              لوحة الإدارة (Access dashboard)
+                            </Link>
+                          )}
                           <Link
                             href="/my-reservations"
                             className="flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600"
@@ -95,16 +105,6 @@ export default function Header() {
                             <CalendarCheck className="w-4 h-4" />
                             حجوزاتي والحالة
                           </Link>
-                          {isAdmin && (
-                            <Link
-                              href="/dashboard"
-                              className="flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600"
-                              onClick={() => setUserMenuOpen(false)}
-                            >
-                              <LayoutDashboard className="w-4 h-4" />
-                              لوحة الإدارة
-                            </Link>
-                          )}
                           <button
                             type="button"
                             onClick={() => { signOut(); setUserMenuOpen(false); }}
@@ -248,28 +248,28 @@ export default function Header() {
               ))}
               {user ? (
                 <>
+                  {isAdmin && (
+                    <li>
+                      <Link
+                        href="/dashboard"
+                        className="block py-3.5 px-2 text-primary-600 hover:bg-primary-50 font-medium rounded-lg min-h-[48px] flex items-center gap-2"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <LayoutDashboard className="w-4 h-4" />
+                        لوحة الإدارة (Access dashboard)
+                      </Link>
+                    </li>
+                  )}
                   <li>
                     <Link
                       href="/my-reservations"
-                      className="block py-3.5 px-2 text-primary-600 hover:bg-primary-50 font-medium rounded-lg min-h-[48px] flex items-center gap-2"
+                      className="block py-3.5 px-2 text-gray-700 hover:bg-primary-50 font-medium rounded-lg min-h-[48px] flex items-center gap-2"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <CalendarCheck className="w-4 h-4" />
                       حجوزاتي والحالة
                     </Link>
                   </li>
-                  {isAdmin && (
-                    <li>
-                      <Link
-                        href="/dashboard"
-                        className="block py-3.5 px-2 text-gray-700 hover:bg-primary-50 font-medium rounded-lg min-h-[48px] flex items-center gap-2"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <LayoutDashboard className="w-4 h-4" />
-                        لوحة الإدارة
-                      </Link>
-                    </li>
-                  )}
                   <li>
                     <button
                       type="button"

@@ -46,3 +46,6 @@ create policy "Allow public delete events" on public.events for delete using (tr
 create policy "Allow public read reservations" on public.reservations for select using (true);
 create policy "Allow public insert reservations" on public.reservations for insert with check (true);
 create policy "Allow public update reservations" on public.reservations for update using (true);
+
+-- Realtime: allow listening to reservation updates (run in SQL Editor if needed)
+-- alter publication supabase_realtime add table public.reservations;

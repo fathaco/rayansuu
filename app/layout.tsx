@@ -1,10 +1,19 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
+import AdminRedirectToDashboard from '@/components/AdminRedirectToDashboard'
+import SplashWrapper from '@/components/SplashWrapper'
 
 export const metadata: Metadata = {
   title: 'فتحة - منصة العلوم الشرعية الرقمية',
   description: 'منصة تعليمية رصينة ومتوازنة لتعلم العلوم الشرعية',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
 }
 
 export default function RootLayout({
@@ -15,7 +24,12 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl">
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <SplashWrapper>
+            <AdminRedirectToDashboard />
+            {children}
+          </SplashWrapper>
+        </AuthProvider>
       </body>
     </html>
   )

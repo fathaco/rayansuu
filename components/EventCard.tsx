@@ -17,24 +17,24 @@ export default function EventCard({ event, onRegister }: EventCardProps) {
       className="group bg-white rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg
                  hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 h-full flex flex-col"
     >
-      <div className="relative bg-gradient-card p-10 sm:p-12 lg:p-16 text-center border-b-4 border-gray-100 min-h-[180px] flex items-center justify-center">
-        {showBadge && (
-          <div
-            className={`absolute top-3 right-3 sm:top-5 sm:right-5 ${badgeColor} text-white
-                       px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow-lg`}
-          >
-            {showBadge}
-          </div>
-        )}
+      <div className="relative bg-gradient-card border-b-4 border-gray-100 h-48 sm:h-56 md:h-64 overflow-hidden">
         {event.image_url ? (
           <img
             src={event.image_url}
             alt=""
-            className="max-h-24 w-auto object-contain opacity-80 group-hover:scale-110 transition-transform duration-500"
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="text-6xl sm:text-7xl opacity-80 group-hover:scale-110 transition-transform duration-500">
-            <BookOpen className="w-16 h-16 sm:w-20 sm:h-20 mx-auto text-primary-400" strokeWidth={1.5} />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <BookOpen className="w-16 h-16 sm:w-20 sm:h-20 text-primary-400 opacity-80 group-hover:scale-110 transition-transform duration-500" strokeWidth={1.5} />
+          </div>
+        )}
+        {showBadge && (
+          <div
+            className={`absolute top-3 right-3 sm:top-5 sm:right-5 z-10 ${badgeColor} text-white
+                       px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow-lg`}
+          >
+            {showBadge}
           </div>
         )}
       </div>
@@ -52,12 +52,12 @@ export default function EventCard({ event, onRegister }: EventCardProps) {
 
         <div className="flex items-center gap-4 sm:gap-6 py-4 sm:py-5 border-t border-gray-100 mb-4 sm:mb-6 text-xs sm:text-sm text-gray-600">
           <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-primary-500" />
-            <span>{event.hours}</span>
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-primary-500 flex-shrink-0" />
+            <span><span className="text-primary-600 font-medium">{event.hours ?? '—'}</span> ساعات</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-primary-500" />
-            <span>{event.lessons}</span>
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-primary-500 flex-shrink-0" />
+            <span><span className="text-primary-600 font-medium">{event.lessons ?? '—'}</span> دروس</span>
           </div>
         </div>
 

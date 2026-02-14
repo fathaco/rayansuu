@@ -33,8 +33,14 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [resLoading, setResLoading] = useState(true)
   const [formLoading, setFormLoading] = useState(false)
+  const [imageUploading, setImageUploading] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'reservations' | 'create'>('overview')
+
+  const setTab = (tab: typeof activeTab) => {
+    setActiveTab(tab)
+    setSidebarOpen(false) // close drawer on mobile when navigating
+  }
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -82,8 +88,7 @@ export default function DashboardPage() {
       .finally(() => setLoading(false))
   }, [isAdmin])
 
-  useEffect(() => {
-    if (!isAdmin) return
+  function fetchReservations() {
     fetch('/api/reservations/list')
       .then((r) => r.json())
       .then((data: ReservationRow[]) => {
@@ -99,6 +104,27 @@ export default function DashboardPage() {
       })
       .catch(() => setReservations([]))
       .finally(() => setResLoading(false))
+  }
+
+  useEffect(() => {
+    if (!isAdmin) return
+    fetchReservations()
+  }, [isAdmin])
+
+  // Realtime: when a reservation is updated (accept/decline) or inserted, refresh the list
+  useEffect(() => {
+    if (!isAdmin) return
+    const channel = supabase
+      .channel('reservations-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'reservations' },
+        () => fetchReservations()
+      )
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [isAdmin])
 
   async function handleCreateEvent(e: React.FormEvent) {
@@ -129,7 +155,7 @@ export default function DashboardPage() {
         image_url: '',
         is_new: true,
       })
-      setActiveTab('events')
+      setTab('events')
     } catch (err) {
       alert(err instanceof Error ? err.message : 'حدث خطأ')
     } finally {
@@ -193,9 +219,9 @@ export default function DashboardPage() {
   // Not logged in: show admin login form (email + password)
   if (!user || !session) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex items-center justify-center p-4">
+      <main className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex items-center justify-center p-4 sm:p-6">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-3xl shadow-2xl p-8 border border-gray-100">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-8 border border-gray-100">
             <div className="text-center mb-8">
               <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Settings className="w-8 h-8 text-white" />
@@ -219,9 +245,10 @@ export default function DashboardPage() {
                   required
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                  className="w-full px-4 py-3.5 min-h-[48px] rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all text-base"
                   placeholder="admin@gmail.com"
                   dir="ltr"
+                  autoComplete="email"
                 />
               </div>
               <div>
@@ -234,15 +261,16 @@ export default function DashboardPage() {
                   required
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                  className="w-full px-4 py-3.5 min-h-[48px] rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all text-base"
                   placeholder="••••••••"
                   dir="ltr"
+                  autoComplete="current-password"
                 />
               </div>
               <button
                 type="submit"
                 disabled={loginLoading}
-                className="w-full py-3.5 px-4 rounded-xl bg-gradient-primary text-white font-semibold hover:shadow-xl disabled:opacity-70 flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02]"
+                className="w-full min-h-[48px] py-3.5 px-4 rounded-xl bg-gradient-primary text-white font-semibold hover:shadow-xl disabled:opacity-70 flex items-center justify-center gap-2 transition-all"
               >
                 {loginLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
                 تسجيل الدخول
@@ -287,11 +315,12 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Menu */}
-          <nav className="flex-1 p-4 space-y-2">
+          {/* Menu - touch-friendly min height */}
+          <nav className="flex-1 p-3 sm:p-4 space-y-1 sm:space-y-2 overflow-y-auto">
             <button
-              onClick={() => setActiveTab('overview')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
+              type="button"
+              onClick={() => setTab('overview')}
+              className={`w-full flex items-center gap-3 px-4 py-3.5 min-h-[48px] rounded-xl font-medium transition-all ${
                 activeTab === 'overview'
                   ? 'bg-gradient-primary text-white shadow-lg'
                   : 'text-gray-700 hover:bg-gray-100'
@@ -302,8 +331,9 @@ export default function DashboardPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('events')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
+              type="button"
+              onClick={() => setTab('events')}
+              className={`w-full flex items-center gap-3 px-4 py-3.5 min-h-[48px] rounded-xl font-medium transition-all ${
                 activeTab === 'events'
                   ? 'bg-gradient-primary text-white shadow-lg'
                   : 'text-gray-700 hover:bg-gray-100'
@@ -321,8 +351,9 @@ export default function DashboardPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('reservations')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
+              type="button"
+              onClick={() => setTab('reservations')}
+              className={`w-full flex items-center gap-3 px-4 py-3.5 min-h-[48px] rounded-xl font-medium transition-all ${
                 activeTab === 'reservations'
                   ? 'bg-gradient-primary text-white shadow-lg'
                   : 'text-gray-700 hover:bg-gray-100'
@@ -338,8 +369,9 @@ export default function DashboardPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('create')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
+              type="button"
+              onClick={() => setTab('create')}
+              className={`w-full flex items-center gap-3 px-4 py-3.5 min-h-[48px] rounded-xl font-medium transition-all ${
                 activeTab === 'create'
                   ? 'bg-gradient-primary text-white shadow-lg'
                   : 'text-gray-700 hover:bg-gray-100'
@@ -350,18 +382,19 @@ export default function DashboardPage() {
             </button>
           </nav>
 
-          {/* Bottom Actions */}
-          <div className="p-4 border-t border-gray-100 space-y-2">
+          {/* Bottom Actions - touch-friendly */}
+          <div className="p-3 sm:p-4 border-t border-gray-100 space-y-1 sm:space-y-2">
             <Link
               href="/"
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-700 hover:bg-gray-100 transition-all"
+              className="w-full flex items-center gap-3 px-4 py-3.5 min-h-[48px] rounded-xl font-medium text-gray-700 hover:bg-gray-100 transition-all"
             >
               <Home className="w-5 h-5" />
               <span>الرئيسية</span>
             </Link>
             <button
+              type="button"
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-red-600 hover:bg-red-50 transition-all"
+              className="w-full flex items-center gap-3 px-4 py-3.5 min-h-[48px] rounded-xl font-medium text-red-600 hover:bg-red-50 transition-all"
             >
               <LogOut className="w-5 h-5" />
               <span>تسجيل الخروج</span>
@@ -379,86 +412,89 @@ export default function DashboardPage() {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 lg:mr-64">
-        {/* Header */}
+      <main className="flex-1 min-w-0 lg:mr-64">
+        {/* Header - mobile first: touch-friendly height and padding */}
         <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
-          <div className="px-4 lg:px-8 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between min-h-[52px] sm:min-h-[56px]">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               <button
+                type="button"
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
+                className="lg:hidden p-2.5 -m-2.5 hover:bg-gray-100 rounded-xl min-h-[44px] min-w-[44px] flex items-center justify-center"
+                aria-label="فتح القائمة"
               >
                 <MenuIcon className="w-6 h-6 text-gray-700" />
               </button>
-              <div>
-                <h1 className="text-xl font-bold text-gray-800">
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-xl font-bold text-gray-800 truncate">
                   {activeTab === 'overview' && 'نظرة عامة'}
                   {activeTab === 'events' && 'إدارة الفعاليات'}
                   {activeTab === 'reservations' && 'إدارة الحجوزات'}
                   {activeTab === 'create' && 'إضافة فعالية جديدة'}
                 </h1>
-                <p className="text-sm text-gray-500">مرحباً بك في لوحة التحكم</p>
+                <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">مرحباً بك في لوحة التحكم</p>
               </div>
             </div>
           </div>
         </header>
 
-        {/* Content */}
-        <div className="p-4 lg:p-8">
+        {/* Content - mobile first padding */}
+        <div className="p-4 sm:p-6 lg:p-8">
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-shadow">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                      <Calendar className="w-6 h-6 text-blue-600" />
+              {/* Stats Cards - mobile first: 2 cols on phone, then 4 on lg */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 hover:shadow-lg transition-shadow">
+                  <div className="flex items-center justify-between mb-2 sm:mb-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                      <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                     </div>
-                    <TrendingUp className="w-5 h-5 text-green-500" />
+                    <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
                   </div>
-                  <p className="text-sm text-gray-600 mb-1">إجمالي الفعاليات</p>
-                  <p className="text-3xl font-bold text-gray-800">{events.length}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-1">إجمالي الفعاليات</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-800">{events.length}</p>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-shadow">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
-                      <Users className="w-6 h-6 text-emerald-600" />
+                <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 hover:shadow-lg transition-shadow">
+                  <div className="flex items-center justify-between mb-2 sm:mb-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                      <Users className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 mb-1">إجمالي الحجوزات</p>
-                  <p className="text-3xl font-bold text-gray-800">{totalReservations}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-1">إجمالي الحجوزات</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-800">{totalReservations}</p>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-shadow">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
-                      <Clock className="w-6 h-6 text-amber-600" />
+                <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 hover:shadow-lg transition-shadow">
+                  <div className="flex items-center justify-between mb-2 sm:mb-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                      <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 mb-1">قيد الانتظار</p>
-                  <p className="text-3xl font-bold text-gray-800">{pendingCount}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-1">قيد الانتظار</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-800">{pendingCount}</p>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-shadow">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                      <Check className="w-6 h-6 text-green-600" />
+                <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 hover:shadow-lg transition-shadow">
+                  <div className="flex items-center justify-between mb-2 sm:mb-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                      <Check className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 mb-1">مؤكدة</p>
-                  <p className="text-3xl font-bold text-gray-800">{confirmedCount}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-1">مؤكدة</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-gray-800">{confirmedCount}</p>
                 </div>
               </div>
 
-              {/* Quick Actions */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">إجراءات سريعة</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Quick Actions - mobile first */}
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">إجراءات سريعة</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                   <button
-                    onClick={() => setActiveTab('create')}
-                    className="p-4 rounded-xl border-2 border-dashed border-gray-300 hover:border-primary-500 hover:bg-primary-50 transition-all text-right group"
+                    type="button"
+                    onClick={() => setTab('create')}
+                    className="min-h-[56px] sm:min-h-[64px] p-4 rounded-xl border-2 border-dashed border-gray-300 hover:border-primary-500 hover:bg-primary-50 transition-all text-right group"
                   >
                     <Plus className="w-8 h-8 text-gray-400 group-hover:text-primary-500 mb-2" />
                     <p className="font-semibold text-gray-700 group-hover:text-primary-600">إضافة فعالية</p>
@@ -466,8 +502,9 @@ export default function DashboardPage() {
                   </button>
 
                   <button
-                    onClick={() => setActiveTab('reservations')}
-                    className="p-4 rounded-xl border-2 border-dashed border-gray-300 hover:border-amber-500 hover:bg-amber-50 transition-all text-right group"
+                    type="button"
+                    onClick={() => setTab('reservations')}
+                    className="min-h-[56px] sm:min-h-[64px] p-4 rounded-xl border-2 border-dashed border-gray-300 hover:border-amber-500 hover:bg-amber-50 transition-all text-right group"
                   >
                     <Clock className="w-8 h-8 text-gray-400 group-hover:text-amber-500 mb-2" />
                     <p className="font-semibold text-gray-700 group-hover:text-amber-600">مراجعة الحجوزات</p>
@@ -475,8 +512,9 @@ export default function DashboardPage() {
                   </button>
 
                   <button
-                    onClick={() => setActiveTab('events')}
-                    className="p-4 rounded-xl border-2 border-dashed border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all text-right group"
+                    type="button"
+                    onClick={() => setTab('events')}
+                    className="min-h-[56px] sm:min-h-[64px] p-4 rounded-xl border-2 border-dashed border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all text-right group"
                   >
                     <Calendar className="w-8 h-8 text-gray-400 group-hover:text-blue-500 mb-2" />
                     <p className="font-semibold text-gray-700 group-hover:text-blue-600">عرض الفعاليات</p>
@@ -486,11 +524,11 @@ export default function DashboardPage() {
               </div>
 
               {/* Recent Reservations */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-gray-800">أحدث الحجوزات</h3>
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <h3 className="text-base sm:text-lg font-bold text-gray-800">أحدث الحجوزات</h3>
                   <button
-                    onClick={() => setActiveTab('reservations')}
+                    onClick={() => setTab('reservations')}
                     className="text-sm text-primary-500 hover:text-primary-600 font-medium"
                   >
                     عرض الكل ←
@@ -533,12 +571,13 @@ export default function DashboardPage() {
 
           {/* Events Tab */}
           {activeTab === 'events' && (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-gray-800">جميع الفعاليات</h2>
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
+                <h2 className="text-base sm:text-lg font-bold text-gray-800">جميع الفعاليات</h2>
                 <button
-                  onClick={() => setActiveTab('create')}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-primary text-white font-medium hover:shadow-lg transition-all"
+                  type="button"
+                  onClick={() => setTab('create')}
+                  className="min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-primary text-white font-medium hover:shadow-lg transition-all w-full sm:w-auto"
                 >
                   <Plus className="w-4 h-4" />
                   إضافة فعالية
@@ -553,7 +592,7 @@ export default function DashboardPage() {
                   <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500 mb-4">لا توجد فعاليات حالياً</p>
                   <button
-                    onClick={() => setActiveTab('create')}
+                    onClick={() => setTab('create')}
                     className="text-primary-500 font-medium hover:underline"
                   >
                     أنشئ أول فعالية
@@ -597,10 +636,10 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Reservations Tab */}
+          {/* Reservations Tab - mobile first: cards on small screens, table on md+ */}
           {activeTab === 'reservations' && (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h2 className="text-lg font-bold text-gray-800 mb-6">إدارة الحجوزات</h2>
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+              <h2 className="text-base sm:text-lg font-bold text-gray-800 mb-4 sm:mb-6">إدارة الحجوزات</h2>
               {resLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
@@ -611,89 +650,149 @@ export default function DashboardPage() {
                   <p className="text-gray-500">لا توجد حجوزات</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b-2 border-gray-200 text-gray-600 text-sm">
-                        <th className="py-4 px-4 text-right font-semibold">الفعالية</th>
-                        <th className="py-4 px-4 text-right font-semibold">المتقدم</th>
-                        <th className="py-4 px-4 text-right font-semibold">البريد</th>
-                        <th className="py-4 px-4 text-right font-semibold">الجوال</th>
-                        <th className="py-4 px-4 text-right font-semibold">الحالة</th>
-                        <th className="py-4 px-4 text-right font-semibold">الإجراءات</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {reservations.map((r) => (
-                        <tr key={r.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                          <td className="py-4 px-4">
-                            <p className="font-medium text-gray-800">{r.event?.title ?? r.event_id}</p>
-                            {r.event?.category && (
-                              <p className="text-xs text-gray-500">{r.event.category}</p>
-                            )}
-                          </td>
-                          <td className="py-4 px-4">
-                            <p className="font-medium text-gray-700">{r.name}</p>
-                          </td>
-                          <td className="py-4 px-4">
-                            <p className="text-sm text-gray-600">{r.email}</p>
-                          </td>
-                          <td className="py-4 px-4">
-                            <p className="text-sm text-gray-600">{r.phone}</p>
-                          </td>
-                          <td className="py-4 px-4">
-                            <span
-                              className={`text-xs font-medium px-3 py-1.5 rounded-full inline-block ${
-                                r.status === 'confirmed'
-                                  ? 'bg-emerald-100 text-emerald-700'
-                                  : r.status === 'cancelled'
-                                  ? 'bg-gray-200 text-gray-600'
-                                  : 'bg-amber-100 text-amber-700'
-                              }`}
-                            >
-                              {r.status === 'pending' && 'قيد الانتظار'}
-                              {r.status === 'confirmed' && 'مؤكد'}
-                              {r.status === 'cancelled' && 'ملغى'}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4">
-                            {r.status === 'pending' && (
-                              <div className="flex flex-wrap gap-2 items-center">
-                                <button
-                                  type="button"
-                                  onClick={() => updateReservationStatus(r.id, 'confirmed')}
-                                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors text-sm font-medium"
-                                  title="قبول الطلب"
-                                >
-                                  <Check className="w-4 h-4" />
-                                  قبول
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => updateReservationStatus(r.id, 'cancelled')}
-                                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors text-sm font-medium"
-                                  title="رفض الطلب"
-                                >
-                                  <X className="w-4 h-4" />
-                                  رفض
-                                </button>
-                              </div>
-                            )}
-                          </td>
+                <>
+                  {/* Mobile: card per reservation */}
+                  <div className="space-y-4 md:hidden">
+                    {reservations.map((r) => (
+                      <div
+                        key={r.id}
+                        className="rounded-xl border border-gray-200 p-4 space-y-3 bg-gray-50/50"
+                      >
+                        <p className="font-semibold text-gray-800">{r.event?.title ?? r.event_id}</p>
+                        {r.event?.category && (
+                          <p className="text-xs text-gray-500">{r.event.category}</p>
+                        )}
+                        <div className="text-sm text-gray-600">
+                          <p><span className="text-gray-500">المتقدم:</span> {r.name}</p>
+                          <p className="truncate" dir="ltr" style={{ direction: 'ltr' }}><span className="text-gray-500">البريد:</span> {r.email}</p>
+                          <p dir="ltr" style={{ direction: 'ltr' }}><span className="text-gray-500">الجوال:</span> {r.phone}</p>
+                        </div>
+                        <div className="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-gray-200">
+                          <span
+                            className={`text-xs font-medium px-3 py-1.5 rounded-full ${
+                              r.status === 'confirmed'
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : r.status === 'cancelled'
+                                ? 'bg-gray-200 text-gray-600'
+                                : 'bg-amber-100 text-amber-700'
+                            }`}
+                          >
+                            {r.status === 'pending' && 'قيد الانتظار'}
+                            {r.status === 'confirmed' && 'مؤكد'}
+                            {r.status === 'cancelled' && 'ملغى'}
+                          </span>
+                          {r.status === 'pending' && (
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => updateReservationStatus(r.id, 'confirmed')}
+                                className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors text-sm font-medium"
+                                title="قبول الطلب"
+                              >
+                                <Check className="w-4 h-4" />
+                                قبول
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => updateReservationStatus(r.id, 'cancelled')}
+                                className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-red-100 text-red-600 hover:bg-red-200 transition-colors text-sm font-medium"
+                                title="رفض الطلب"
+                              >
+                                <X className="w-4 h-4" />
+                                رفض
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Desktop: table */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b-2 border-gray-200 text-gray-600 text-sm">
+                          <th className="py-4 px-4 text-right font-semibold">الفعالية</th>
+                          <th className="py-4 px-4 text-right font-semibold">المتقدم</th>
+                          <th className="py-4 px-4 text-right font-semibold">البريد</th>
+                          <th className="py-4 px-4 text-right font-semibold">الجوال</th>
+                          <th className="py-4 px-4 text-right font-semibold">الحالة</th>
+                          <th className="py-4 px-4 text-right font-semibold">الإجراءات</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {reservations.map((r) => (
+                          <tr key={r.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                            <td className="py-4 px-4">
+                              <p className="font-medium text-gray-800">{r.event?.title ?? r.event_id}</p>
+                              {r.event?.category && (
+                                <p className="text-xs text-gray-500">{r.event.category}</p>
+                              )}
+                            </td>
+                            <td className="py-4 px-4">
+                              <p className="font-medium text-gray-700">{r.name}</p>
+                            </td>
+                            <td className="py-4 px-4">
+                              <p className="text-sm text-gray-600">{r.email}</p>
+                            </td>
+                            <td className="py-4 px-4">
+                              <p className="text-sm text-gray-600">{r.phone}</p>
+                            </td>
+                            <td className="py-4 px-4">
+                              <span
+                                className={`text-xs font-medium px-3 py-1.5 rounded-full inline-block ${
+                                  r.status === 'confirmed'
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : r.status === 'cancelled'
+                                    ? 'bg-gray-200 text-gray-600'
+                                    : 'bg-amber-100 text-amber-700'
+                                }`}
+                              >
+                                {r.status === 'pending' && 'قيد الانتظار'}
+                                {r.status === 'confirmed' && 'مؤكد'}
+                                {r.status === 'cancelled' && 'ملغى'}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4">
+                              {r.status === 'pending' && (
+                                <div className="flex flex-wrap gap-2 items-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => updateReservationStatus(r.id, 'confirmed')}
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors text-sm font-medium min-h-[44px]"
+                                    title="قبول الطلب"
+                                  >
+                                    <Check className="w-4 h-4" />
+                                    قبول
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => updateReservationStatus(r.id, 'cancelled')}
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors text-sm font-medium min-h-[44px]"
+                                    title="رفض الطلب"
+                                  >
+                                    <X className="w-4 h-4" />
+                                    رفض
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
             </div>
           )}
 
           {/* Create Event Tab */}
           {activeTab === 'create' && (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <div className="mb-6">
-                <h2 className="text-lg font-bold text-gray-800 mb-2">إنشاء فعالية جديدة</h2>
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+              <div className="mb-4 sm:mb-6">
+                <h2 className="text-base sm:text-lg font-bold text-gray-800 mb-2">إنشاء فعالية جديدة</h2>
                 <p className="text-sm text-gray-500">املأ النموذج لإضافة فعالية جديدة للمنصة</p>
               </div>
               <form onSubmit={handleCreateEvent} className="space-y-6">
@@ -786,14 +885,33 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">رابط الصورة (اختياري)</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">صورة الفعالية (من مجلد فتحة)</label>
                     <input
-                      type="url"
-                      value={form.image_url}
-                      onChange={(e) => setForm((f) => ({ ...f, image_url: e.target.value }))}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
-                      placeholder="https://example.com/image.jpg"
+                      type="file"
+                      accept="image/*"
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-100 file:text-primary-700"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0]
+                        if (!file) return
+                        setImageUploading(true)
+                        try {
+                          const fd = new FormData()
+                          fd.set('file', file)
+                          const res = await fetch('/api/upload', { method: 'POST', body: fd })
+                          const data = await res.json()
+                          if (res.ok && data.url) setForm((f) => ({ ...f, image_url: data.url }))
+                          else alert(data.error || 'فشل الرفع')
+                        } finally {
+                          setImageUploading(false)
+                          e.target.value = ''
+                        }
+                      }}
+                      disabled={imageUploading}
                     />
+                    {imageUploading && <p className="text-sm text-primary-600 mt-1">جاري الرفع...</p>}
+                    {form.image_url && (
+                      <p className="text-sm text-gray-500 mt-1 truncate" title={form.image_url}>تم: {form.image_url}</p>
+                    )}
                   </div>
 
                   <div className="md:col-span-2">
@@ -812,19 +930,19 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-4 pt-4">
+                <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 pt-4">
                   <button
                     type="submit"
                     disabled={formLoading}
-                    className="flex-1 py-3.5 px-6 rounded-xl bg-gradient-primary text-white font-semibold disabled:opacity-70 flex items-center justify-center gap-2 hover:shadow-xl transition-all transform hover:scale-[1.02]"
+                    className="w-full sm:flex-1 min-h-[48px] py-3.5 px-6 rounded-xl bg-gradient-primary text-white font-semibold disabled:opacity-70 flex items-center justify-center gap-2 hover:shadow-xl transition-all"
                   >
                     {formLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
                     إنشاء الفعالية
                   </button>
                   <button
                     type="button"
-                    onClick={() => setActiveTab('events')}
-                    className="px-6 py-3.5 rounded-xl border-2 border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-all"
+                    onClick={() => setTab('events')}
+                    className="w-full sm:w-auto min-h-[48px] px-6 py-3.5 rounded-xl border-2 border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-all"
                   >
                     إلغاء
                   </button>
