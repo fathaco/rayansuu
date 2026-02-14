@@ -1,18 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const INGEST = 'http://127.0.0.1:7244/ingest/115e6265-d769-46f7-a0ac-a3b21fa1d1cf'
-const log = (location: string, message: string, data: Record<string, unknown>) => {
-  fetch(INGEST, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location, message, data, timestamp: Date.now(), hypothesisId: 'H1' }) }).catch(() => {})
-}
-
+// In production (e.g. Vercel): set env ADMIN_EMAILS to comma-separated admin emails (e.g. admin@gmail.com) so dashboard and "لوحة الإدارة" in menu work.
 export async function GET(request: Request) {
   const authHeader = request.headers.get('Authorization')
   const token = authHeader?.replace(/^Bearer\s+/i, '')
   if (!token) {
-    // #region agent log
-    log('api/auth/admin:no-token', 'No token in request', { hasToken: false })
-    // #endregion
     return NextResponse.json({ isAdmin: false }, { status: 200 })
   }
 
@@ -22,9 +15,6 @@ export async function GET(request: Request) {
   )
   const { data: { user }, error } = await supabase.auth.getUser(token)
   if (error || !user?.email) {
-    // #region agent log
-    log('api/auth/admin:getUser-fail', 'getUser failed or no email', { hasToken: true, getUserError: !!error, hasEmail: !!user?.email })
-    // #endregion
     return NextResponse.json({ isAdmin: false }, { status: 200 })
   }
 
@@ -33,8 +23,5 @@ export async function GET(request: Request) {
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean)
   const isAdmin = adminEmails.includes(user.email.toLowerCase())
-  // #region agent log
-  log('api/auth/admin:result', 'Admin check result', { adminEmailsCount: adminEmails.length, isAdmin })
-  // #endregion
   return NextResponse.json({ isAdmin })
 }

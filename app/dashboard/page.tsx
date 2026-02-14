@@ -61,10 +61,6 @@ export default function DashboardPage() {
       setIsAdmin(false)
       return
     }
-    // #region agent log
-    const tokenLen = session.access_token?.length ?? 0
-    fetch('http://127.0.0.1:7244/ingest/115e6265-d769-46f7-a0ac-a3b21fa1d1cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard/page.tsx:admin-check-start',message:'Dashboard admin check starting',data:{userEmail:user?.email??'none',tokenLen,authLoading},timestamp:Date.now(),hypothesisId:'H4'})}).catch(()=>{});
-    // #endregion
     // Re-checking admin (e.g. after email/password login): show loading until API returns so we don't redirect to /events too early
     setAdminChecked(false)
     fetch('/api/auth/admin', {
@@ -73,17 +69,11 @@ export default function DashboardPage() {
       .then((r) => r.json())
       .then((data: { isAdmin?: boolean }) => {
         const ok = data.isAdmin === true
-        // #region agent log
-        fetch('http://127.0.0.1:7244/ingest/115e6265-d769-46f7-a0ac-a3b21fa1d1cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard/page.tsx:admin-response',message:'Dashboard admin API response',data:{isAdmin:data.isAdmin,ok,willRedirect:!ok},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
-        // #endregion
         setIsAdmin(ok)
         setAdminChecked(true)
         if (!ok) router.replace('/events')
       })
-      .catch((err) => {
-        // #region agent log
-        fetch('http://127.0.0.1:7244/ingest/115e6265-d769-46f7-a0ac-a3b21fa1d1cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard/page.tsx:admin-catch',message:'Dashboard admin fetch failed',data:{errMsg:err?.message??'unknown'},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-        // #endregion
+      .catch(() => {
         setAdminChecked(true)
         setIsAdmin(false)
         router.replace('/events')

@@ -1,0 +1,118 @@
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106468921,"hypothesisId":"H4"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106469455,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106469386,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106489218,"hypothesisId":"H4"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106489395,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106489390,"hypothesisId":"H1"}
+{"location":"Header.tsx:checkAdmin","message":"Header admin check called","data":{"userEmail":"admin@gmail.com","menuOpen":false},"timestamp":1771106494619,"hypothesisId":"H3"}
+{"location":"Header.tsx:checkAdmin","message":"Header admin check called","data":{"userEmail":"admin@gmail.com","menuOpen":false},"timestamp":1771106494620,"hypothesisId":"H3"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106494841,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106494893,"hypothesisId":"H4"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106494894,"hypothesisId":"H4"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106495009,"hypothesisId":"H1"}
+{"location":"Header.tsx:admin-result","message":"Header admin result","data":{"isAdmin":true},"timestamp":1771106495014,"hypothesisId":"H3"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106495144,"hypothesisId":"H1"}
+{"location":"Header.tsx:admin-result","message":"Header admin result","data":{"isAdmin":true},"timestamp":1771106495147,"hypothesisId":"H3"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106495277,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106495281,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106495428,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106495432,"hypothesisId":"H1"}
+{"location":"Header.tsx:checkAdmin","message":"Header admin check called","data":{"userEmail":"admin@gmail.com","menuOpen":false},"timestamp":1771106499296,"hypothesisId":"H3"}
+{"location":"Header.tsx:checkAdmin","message":"Header admin check called","data":{"userEmail":"admin@gmail.com","menuOpen":false},"timestamp":1771106499297,"hypothesisId":"H3"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106499479,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106499494,"hypothesisId":"H4"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106499495,"hypothesisId":"H4"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106499638,"hypothesisId":"H1"}
+{"location":"Header.tsx:admin-result","message":"Header admin result","data":{"isAdmin":true},"timestamp":1771106499642,"hypothesisId":"H3"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106499786,"hypothesisId":"H1"}
+{"location":"Header.tsx:admin-result","message":"Header admin result","data":{"isAdmin":true},"timestamp":1771106499798,"hypothesisId":"H3"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106499974,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106499985,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106500151,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106500161,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106509738,"hypothesisId":"H4"}
+{"location":"Header.tsx:checkAdmin","message":"Header admin check called","data":{"userEmail":"admin@gmail.com","menuOpen":false},"timestamp":1771106509745,"hypothesisId":"H3"}
+{"location":"Header.tsx:checkAdmin","message":"Header admin check called","data":{"userEmail":"admin@gmail.com","menuOpen":false},"timestamp":1771106509753,"hypothesisId":"H3"}
+{"location":"Header.tsx:checkAdmin","message":"Header admin check called","data":{"userEmail":"admin@gmail.com","menuOpen":false},"timestamp":1771106509756,"hypothesisId":"H3"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106509893,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106509882,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106510028,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106510192,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106510200,"hypothesisId":"H4"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106510201,"hypothesisId":"H4"}
+{"location":"Header.tsx:admin-result","message":"Header admin result","data":{"isAdmin":true},"timestamp":1771106510204,"hypothesisId":"H3"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106510374,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106510546,"hypothesisId":"H1"}
+{"location":"Header.tsx:admin-result","message":"Header admin result","data":{"isAdmin":true},"timestamp":1771106510555,"hypothesisId":"H3"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106510681,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106510808,"hypothesisId":"H1"}
+{"location":"Header.tsx:admin-result","message":"Header admin result","data":{"isAdmin":true},"timestamp":1771106510817,"hypothesisId":"H3"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106510944,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106510958,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106511119,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106511128,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106515059,"hypothesisId":"H4"}
+{"location":"Header.tsx:checkAdmin","message":"Header admin check called","data":{"userEmail":"admin@gmail.com","menuOpen":false},"timestamp":1771106515133,"hypothesisId":"H3"}
+{"location":"Header.tsx:checkAdmin","message":"Header admin check called","data":{"userEmail":"admin@gmail.com","menuOpen":false},"timestamp":1771106515144,"hypothesisId":"H3"}
+{"location":"Header.tsx:checkAdmin","message":"Header admin check called","data":{"userEmail":"admin@gmail.com","menuOpen":false},"timestamp":1771106515147,"hypothesisId":"H3"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106515200,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106515212,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106515362,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106515564,"hypothesisId":"H1"}
+{"location":"Header.tsx:admin-result","message":"Header admin result","data":{"isAdmin":true},"timestamp":1771106515574,"hypothesisId":"H3"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106515620,"hypothesisId":"H4"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106515621,"hypothesisId":"H4"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106515710,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106515903,"hypothesisId":"H1"}
+{"location":"Header.tsx:admin-result","message":"Header admin result","data":{"isAdmin":true},"timestamp":1771106515923,"hypothesisId":"H3"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106516081,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106516230,"hypothesisId":"H1"}
+{"location":"Header.tsx:admin-result","message":"Header admin result","data":{"isAdmin":true},"timestamp":1771106516243,"hypothesisId":"H3"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106516394,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106516404,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106516622,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106516635,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106517190,"hypothesisId":"H4"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106517402,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106517422,"hypothesisId":"H1"}
+{"location":"Header.tsx:checkAdmin","message":"Header admin check called","data":{"userEmail":"admin@gmail.com","menuOpen":false},"timestamp":1771106525631,"hypothesisId":"H3"}
+{"location":"Header.tsx:checkAdmin","message":"Header admin check called","data":{"userEmail":"admin@gmail.com","menuOpen":false},"timestamp":1771106525645,"hypothesisId":"H3"}
+{"location":"Header.tsx:checkAdmin","message":"Header admin check called","data":{"userEmail":"admin@gmail.com","menuOpen":false},"timestamp":1771106525649,"hypothesisId":"H3"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106525915,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106526072,"hypothesisId":"H1"}
+{"location":"Header.tsx:admin-result","message":"Header admin result","data":{"isAdmin":true},"timestamp":1771106526087,"hypothesisId":"H3"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106526191,"hypothesisId":"H4"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106526192,"hypothesisId":"H4"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106526215,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106526365,"hypothesisId":"H1"}
+{"location":"Header.tsx:admin-result","message":"Header admin result","data":{"isAdmin":true},"timestamp":1771106526384,"hypothesisId":"H3"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106526563,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106526712,"hypothesisId":"H1"}
+{"location":"Header.tsx:admin-result","message":"Header admin result","data":{"isAdmin":true},"timestamp":1771106526727,"hypothesisId":"H3"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106526950,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106526975,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106527132,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106527154,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106528710,"hypothesisId":"H4"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106528709,"hypothesisId":"H4"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106529036,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106529046,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106529246,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106529354,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106556483,"hypothesisId":"H4"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106556505,"hypothesisId":"H4"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106556706,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106556740,"hypothesisId":"H1"}
+{"location":"api/auth/admin:result","message":"Admin check result","data":{"adminEmailsCount":1,"isAdmin":true},"timestamp":1771106556920,"hypothesisId":"H1"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106556933,"hypothesisId":"H1"}
+{"location":"Header.tsx:admin-result","message":"Header admin result","data":{"isAdmin":false},"timestamp":1771106667422,"hypothesisId":"H3"}
+{"location":"Header.tsx:checkAdmin","message":"Header admin check called","data":{"userEmail":"admin@gmail.com","menuOpen":false},"timestamp":1771106674945,"hypothesisId":"H3"}
+{"location":"Header.tsx:admin-result","message":"Header admin result","data":{"isAdmin":false},"timestamp":1771106675247,"hypothesisId":"H3"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106743830,"hypothesisId":"H4"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":false,"ok":false,"willRedirect":true},"timestamp":1771106744287,"hypothesisId":"H1"}
+{"location":"Header.tsx:checkAdmin","message":"Header admin check called","data":{"userEmail":"admin@gmail.com","menuOpen":false},"timestamp":1771106744358,"hypothesisId":"H3"}
+{"location":"Header.tsx:admin-result","message":"Header admin result","data":{"isAdmin":false},"timestamp":1771106744936,"hypothesisId":"H3"}
+{"location":"Header.tsx:checkAdmin","message":"Header admin check called","data":{"userEmail":"admin@gmail.com","menuOpen":false},"timestamp":1771106765208,"hypothesisId":"H3"}
+{"location":"Header.tsx:admin-result","message":"Header admin result","data":{"isAdmin":false},"timestamp":1771106766014,"hypothesisId":"H3"}
+{"location":"dashboard/page.tsx:admin-check-start","message":"Dashboard admin check starting","data":{"userEmail":"admin@gmail.com","tokenLen":792,"authLoading":false},"timestamp":1771106891511,"hypothesisId":"H4"}
+{"location":"dashboard/page.tsx:admin-response","message":"Dashboard admin API response","data":{"isAdmin":true,"ok":true,"willRedirect":false},"timestamp":1771106891900,"hypothesisId":"H1"}

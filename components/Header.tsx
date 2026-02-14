@@ -40,19 +40,11 @@ export default function Header() {
       setIsAdmin(false)
       return
     }
-    // #region agent log
-    fetch('http://127.0.0.1:7244/ingest/115e6265-d769-46f7-a0ac-a3b21fa1d1cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Header.tsx:checkAdmin',message:'Header admin check called',data:{userEmail:user?.email??'none',menuOpen:isMobileMenuOpen},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
-    // #endregion
     fetch('/api/auth/admin', {
       headers: { Authorization: `Bearer ${session.access_token}` },
     })
       .then((r) => r.json())
-      .then((data: { isAdmin?: boolean }) => {
-        // #region agent log
-        fetch('http://127.0.0.1:7244/ingest/115e6265-d769-46f7-a0ac-a3b21fa1d1cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Header.tsx:admin-result',message:'Header admin result',data:{isAdmin:data.isAdmin},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
-        // #endregion
-        setIsAdmin(data.isAdmin === true)
-      })
+      .then((data: { isAdmin?: boolean }) => setIsAdmin(data.isAdmin === true))
       .catch(() => setIsAdmin(false))
   }, [user, session?.access_token])
 
@@ -112,24 +104,25 @@ export default function Header() {
                       <>
                         <div className="fixed inset-0 z-10" aria-hidden onClick={() => setUserMenuOpen(false)} />
                         <div className="absolute top-full right-0 mt-1 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-20">
-                          {isAdmin && (
+                          {isAdmin ? (
                             <Link
                               href="/dashboard"
                               className="flex items-center gap-2 px-4 py-2.5 text-primary-600 hover:bg-primary-50 font-medium"
                               onClick={() => setUserMenuOpen(false)}
                             >
                               <LayoutDashboard className="w-4 h-4" />
-                              لوحة الإدارة (Access dashboard)
+                              لوحة الإدارة
+                            </Link>
+                          ) : (
+                            <Link
+                              href="/my-reservations"
+                              className="flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                              onClick={() => setUserMenuOpen(false)}
+                            >
+                              <CalendarCheck className="w-4 h-4" />
+                              حجوزاتي والحالة
                             </Link>
                           )}
-                          <Link
-                            href="/my-reservations"
-                            className="flex items-center gap-2 px-4 py-2.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600"
-                            onClick={() => setUserMenuOpen(false)}
-                          >
-                            <CalendarCheck className="w-4 h-4" />
-                            حجوزاتي والحالة
-                          </Link>
                           <button
                             type="button"
                             onClick={() => { signOut(); setUserMenuOpen(false); }}
@@ -273,7 +266,7 @@ export default function Header() {
               ))}
               {user ? (
                 <>
-                  {isAdmin && (
+                  {isAdmin ? (
                     <li>
                       <Link
                         href="/dashboard"
@@ -281,20 +274,21 @@ export default function Header() {
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         <LayoutDashboard className="w-4 h-4" />
-                        لوحة الإدارة (Access dashboard)
+                        لوحة الإدارة
+                      </Link>
+                    </li>
+                  ) : (
+                    <li>
+                      <Link
+                        href="/my-reservations"
+                        className="block py-3.5 px-2 text-gray-700 hover:bg-primary-50 font-medium rounded-lg min-h-[48px] flex items-center gap-2"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <CalendarCheck className="w-4 h-4" />
+                        حجوزاتي والحالة
                       </Link>
                     </li>
                   )}
-                  <li>
-                    <Link
-                      href="/my-reservations"
-                      className="block py-3.5 px-2 text-gray-700 hover:bg-primary-50 font-medium rounded-lg min-h-[48px] flex items-center gap-2"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <CalendarCheck className="w-4 h-4" />
-                      حجوزاتي والحالة
-                    </Link>
-                  </li>
                   <li>
                     <button
                       type="button"
