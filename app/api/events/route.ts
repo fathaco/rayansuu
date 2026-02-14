@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     }
     const { data, error } = await supabase
       .from('events')
-      // @ts-expect-error Supabase client infers never for insert with custom Database type
+      // @ts-ignore - Supabase Database generic infers never for insert with custom types
       .insert(payload)
       .select()
       .single()
