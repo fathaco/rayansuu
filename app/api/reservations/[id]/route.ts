@@ -16,6 +16,7 @@ export async function PATCH(
     }
     const { data, error } = await supabase
       .from('reservations')
+      // @ts-expect-error Supabase client infers never for update with custom Database type
       .update({ status })
       .eq('id', params.id)
       .select()

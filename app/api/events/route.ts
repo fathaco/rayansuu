@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase/client'
+import type { EventInsert } from '@/types/database'
 
 export async function GET() {
   const { data, error } = await supabase
@@ -32,19 +33,21 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
+    const payload: EventInsert = {
+      title,
+      description,
+      category,
+      hours,
+      lessons,
+      badge: badge ?? null,
+      badge_color: badge_color ?? null,
+      image_url: image_url ?? null,
+      is_new: is_new ?? true,
+    }
     const { data, error } = await supabase
       .from('events')
-      .insert({
-        title,
-        description,
-        category,
-        hours,
-        lessons,
-        badge: badge ?? null,
-        badge_color: badge_color ?? null,
-        image_url: image_url ?? null,
-        is_new: is_new ?? true,
-      })
+      // @ts-expect-error Supabase client infers never for insert with custom Database type
+      .insert(payload)
       .select()
       .single()
     if (error) {

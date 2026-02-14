@@ -30,6 +30,7 @@ export async function POST(request: Request) {
 
     const { data, error } = await supabase
       .from('reservations')
+      // @ts-expect-error Supabase client infers never for insert with custom Database type
       .insert({ event_id, name, email: emailNorm, phone, status: 'pending' })
       .select()
       .single()

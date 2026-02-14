@@ -80,8 +80,12 @@ export interface Database {
         }
       }
     }
+    Views: Record<string, never>
+    Functions: Record<string, never>
+    Enums: Record<string, never>
   }
 }
 
 export type EventRow = Database['public']['Tables']['events']['Row']
+export type EventInsert = Database['public']['Tables']['events']['Insert']
 export type ReservationRow = Database['public']['Tables']['reservations']['Row']
