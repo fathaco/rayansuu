@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { Menu, X, LogOut, CalendarCheck, LayoutDashboard } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
@@ -34,18 +34,43 @@ export default function Header() {
     setAvatarError(false)
   }, [user?.id])
 
-  useEffect(() => {
+  // Admin check when we have a session (after auth is ready)
+  const checkAdmin = useCallback(() => {
     if (!user || !session?.access_token) {
       setIsAdmin(false)
       return
     }
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/115e6265-d769-46f7-a0ac-a3b21fa1d1cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Header.tsx:checkAdmin',message:'Header admin check called',data:{userEmail:user?.email??'none',menuOpen:isMobileMenuOpen},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
+    // #endregion
     fetch('/api/auth/admin', {
       headers: { Authorization: `Bearer ${session.access_token}` },
     })
       .then((r) => r.json())
-      .then((data: { isAdmin?: boolean }) => setIsAdmin(data.isAdmin === true))
+      .then((data: { isAdmin?: boolean }) => {
+        // #region agent log
+        fetch('http://127.0.0.1:7244/ingest/115e6265-d769-46f7-a0ac-a3b21fa1d1cf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Header.tsx:admin-result',message:'Header admin result',data:{isAdmin:data.isAdmin},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
+        // #endregion
+        setIsAdmin(data.isAdmin === true)
+      })
       .catch(() => setIsAdmin(false))
   }, [user, session?.access_token])
+
+  // Run admin check only after auth has finished loading (session may restore after redirect)
+  useEffect(() => {
+    if (loading || !user || !session?.access_token) {
+      if (!loading && !user) setIsAdmin(false)
+      return
+    }
+    checkAdmin()
+  }, [loading, user, session?.access_token, checkAdmin])
+
+  // Re-check admin when opening mobile menu (in case first check ran before session was ready, e.g. after deploy)
+  useEffect(() => {
+    if (isMobileMenuOpen && user && session?.access_token) {
+      checkAdmin()
+    }
+  }, [isMobileMenuOpen, user, session?.access_token, checkAdmin])
 
   return (
     <header
