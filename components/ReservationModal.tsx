@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { Check } from 'lucide-react'
 import type { EventRow } from '@/types/database'
 
@@ -59,7 +60,14 @@ export default function ReservationModal({ event, onClose, onSuccess }: Reservat
               <Check className="w-10 h-10 text-emerald-600" strokeWidth={2.5} />
             </div>
             <h3 className="text-xl font-bold text-gray-800 mb-2">تم التسجيل بنجاح</h3>
-            <p className="text-gray-600">سنتواصل معك قريباً</p>
+            <p className="text-gray-600 mb-2">سنتواصل معك قريباً</p>
+            <div className="mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200 text-right">
+              <p className="text-amber-800 font-medium">يجب تأكيد الدفع</p>
+              <p className="text-sm text-amber-700 mt-1">يرجى إرسال إثبات الدفع (صورة الحوالة أو الإيصال) من صفحة حجوزاتي لتأكيد حجزك.</p>
+              <Link href="/my-reservations" className="inline-block mt-3 text-primary-600 font-semibold hover:underline">
+                الذهاب إلى حجوزاتي ←
+              </Link>
+            </div>
           </div>
         ) : (
           <>

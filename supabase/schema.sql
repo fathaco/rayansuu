@@ -23,7 +23,9 @@ create table if not exists public.reservations (
   name text not null,
   email text not null,
   phone text not null,
-  status text not null default 'pending' check (status in ('pending', 'confirmed', 'cancelled'))
+  status text not null default 'pending' check (status in ('pending', 'confirmed', 'cancelled')),
+  payment_proof_url text,
+  payment_confirmed boolean not null default false
 );
 
 -- Index for listing reservations by event

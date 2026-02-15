@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
-import { CalendarCheck, Loader2, CheckCircle, Clock, XCircle } from 'lucide-react'
+import { CalendarCheck, Loader2, CheckCircle, Clock, XCircle, FileUp, ExternalLink } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import type { ReservationRow } from '@/types/database'
 import type { EventRow } from '@/types/database'
@@ -22,14 +22,11 @@ export default function MyReservationsPage() {
   const router = useRouter()
   const [reservations, setReservations] = useState<ReservationWithEvent[]>([])
   const [loading, setLoading] = useState(true)
+  const [uploadingId, setUploadingId] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (authLoading) return
-    if (!user || !session?.access_token) {
-      router.replace('/events')
-      return
-    }
-    fetch('/api/my-reservations', {
+  function fetchReservations() {
+    if (!session?.access_token) return Promise.resolve()
+    return fetch('/api/my-reservations', {
       headers: { Authorization: `Bearer ${session.access_token}` },
     })
       .then((r) => (r.ok ? r.json() : []))
@@ -43,8 +40,46 @@ export default function MyReservationsPage() {
           })
       })
       .catch(() => setReservations([]))
-      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    if (authLoading) return
+    if (!user || !session?.access_token) {
+      router.replace('/events')
+      return
+    }
+    fetchReservations().finally(() => setLoading(false))
   }, [user, session?.access_token, authLoading, router])
+
+  async function handlePaymentProof(reservationId: string, file: File) {
+    setUploadingId(reservationId)
+    try {
+      const fd = new FormData()
+      fd.set('file', file)
+      const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd })
+      const uploadData = await uploadRes.json()
+      if (!uploadRes.ok || !uploadData.url) {
+        alert(uploadData.error || 'فشل رفع الملف')
+        return
+      }
+      const patchRes = await fetch(`/api/my-reservations/${reservationId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ payment_proof_url: uploadData.url }),
+      })
+      if (!patchRes.ok) {
+        const err = await patchRes.json().catch(() => ({}))
+        alert(err.error || 'فشل حفظ إثبات الدفع')
+        return
+      }
+      fetchReservations()
+    } finally {
+      setUploadingId(null)
+    }
+  }
 
   if (authLoading || !user) {
     return (
@@ -83,14 +118,23 @@ export default function MyReservationsPage() {
               {reservations.map((r) => {
                 const statusInfo = STATUS_LABELS[r.status] || STATUS_LABELS.pending
                 const StatusIcon = statusInfo.Icon
+                const showPaymentTask = r.status !== 'cancelled'
+                const hasProof = !!r.payment_proof_url
+                const isConfirmed = !!r.payment_confirmed
+                const isUploading = uploadingId === r.id
                 return (
-                  <li key={r.id} className="bg-white rounded-2xl shadow-sm overflow-hidden">
-                    <div className="p-5 border-b border-gray-100">
+                  <li key={r.id} className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200">
+                    {/* Event: what user is paying for */}
+                    <div className="p-5 bg-gradient-to-l from-primary-50 to-white border-b border-gray-100">
+                      <p className="text-xs font-semibold text-primary-600 uppercase tracking-wide mb-1">الفعالية التي تحجز لها</p>
                       <h2 className="font-bold text-gray-800 text-lg">
                         {r.event?.title ?? 'فعالية'}
                       </h2>
                       {r.event?.category && (
                         <p className="text-sm text-primary-500 mt-0.5">{r.event.category}</p>
+                      )}
+                      {r.event?.hours && (
+                        <p className="text-xs text-gray-500 mt-1">المدة: {r.event.hours} — الدروس: {r.event.lessons}</p>
                       )}
                     </div>
                     <div className="p-5 flex flex-wrap items-center justify-between gap-3">
@@ -106,6 +150,78 @@ export default function MyReservationsPage() {
                         <span>التاريخ: {new Date(r.created_at).toLocaleDateString('ar-SA')}</span>
                       </div>
                     </div>
+                    {/* Payment: add image / view status */}
+                    {showPaymentTask && (
+                      <div className="px-5 pb-5">
+                        <div className="rounded-xl border-2 border-dashed border-primary-200 bg-primary-50/30 p-4">
+                          <p className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                            <FileUp className="w-4 h-4 text-primary-600" />
+                            إثبات الدفع
+                          </p>
+                          {!hasProof && (
+                            <div>
+                              <p className="text-sm text-gray-700 mb-3">أرسل صورة إثبات الدفع (الحوالة أو الإيصال) لتأكيد حجزك.</p>
+                              <label className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-primary-500 text-white font-semibold cursor-pointer hover:bg-primary-600 transition-colors disabled:opacity-70 shadow-md">
+                                <FileUp className="w-5 h-5" />
+                                {isUploading ? 'جاري الرفع...' : 'إضافة صورة إثبات الدفع'}
+                                <input
+                                  type="file"
+                                  accept="image/*,.pdf"
+                                  className="sr-only"
+                                  disabled={isUploading}
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0]
+                                    if (file) handlePaymentProof(r.id, file)
+                                    e.target.value = ''
+                                  }}
+                                />
+                              </label>
+                              {isUploading && <Loader2 className="w-5 h-5 animate-spin inline-block mr-2 text-primary-600" />}
+                            </div>
+                          )}
+                          {hasProof && !isConfirmed && (
+                            <div className="space-y-2">
+                              <span className="text-sm text-amber-700 font-medium block">تم رفع إثبات الدفع — بانتظار التأكيد من الإدارة</span>
+                              {/\.(jpe?g|png|gif|webp)$/i.test(r.payment_proof_url!) ? (
+                                <a href={r.payment_proof_url!} target="_blank" rel="noopener noreferrer" className="block">
+                                  <img src={r.payment_proof_url!} alt="إثبات الدفع" className="max-h-40 rounded-lg border border-gray-200 object-contain bg-white" />
+                                </a>
+                              ) : null}
+                              <a
+                                href={r.payment_proof_url!}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-primary-600 text-sm font-medium hover:underline"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                                عرض الملف
+                              </a>
+                            </div>
+                          )}
+                          {hasProof && isConfirmed && (
+                            <div className="flex items-start gap-3">
+                              <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                              <div>
+                                <span className="text-sm font-medium text-emerald-700 block">تم تأكيد الدفع</span>
+                                {/\.(jpe?g|png|gif|webp)$/i.test(r.payment_proof_url!) ? (
+                                  <a href={r.payment_proof_url!} target="_blank" rel="noopener noreferrer" className="block mt-2">
+                                    <img src={r.payment_proof_url!} alt="إثبات الدفع" className="max-h-32 rounded-lg border border-gray-200 object-contain bg-white" />
+                                  </a>
+                                ) : null}
+                                <a
+                                  href={r.payment_proof_url!}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-primary-600 hover:underline mt-1 inline-block"
+                                >
+                                  عرض الملف
+                                </a>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </li>
                 )
               })}

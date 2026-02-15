@@ -59,6 +59,8 @@ export interface Database {
           email: string
           phone: string
           status: 'pending' | 'confirmed' | 'cancelled'
+          payment_proof_url: string | null
+          payment_confirmed: boolean
         }
         Insert: {
           id?: string
@@ -68,6 +70,8 @@ export interface Database {
           email: string
           phone: string
           status?: 'pending' | 'confirmed' | 'cancelled'
+          payment_proof_url?: string | null
+          payment_confirmed?: boolean
         }
         Update: {
           id?: string
@@ -77,6 +81,8 @@ export interface Database {
           email?: string
           phone?: string
           status?: 'pending' | 'confirmed' | 'cancelled'
+          payment_proof_url?: string | null
+          payment_confirmed?: boolean
         }
       }
     }

@@ -10,23 +10,30 @@ export async function PATCH(
     if (!id) {
       return NextResponse.json({ error: 'Missing reservation id' }, { status: 400 })
     }
-    let body: { status?: string } = {}
+    let body: { status?: string; payment_confirmed?: boolean } = {}
     try {
       body = await request.json()
     } catch {
       // invalid or empty JSON
     }
-    const { status } = body
-    if (!status || !['pending', 'confirmed', 'cancelled'].includes(status)) {
+    const { status, payment_confirmed } = body
+    const updates: { status?: string; payment_confirmed?: boolean } = {}
+    if (status && ['pending', 'confirmed', 'cancelled'].includes(status)) {
+      updates.status = status
+    }
+    if (typeof payment_confirmed === 'boolean') {
+      updates.payment_confirmed = payment_confirmed
+    }
+    if (Object.keys(updates).length === 0) {
       return NextResponse.json(
-        { error: 'status must be pending, confirmed, or cancelled' },
+        { error: 'يجب إرسال status أو payment_confirmed' },
         { status: 400 }
       )
     }
     const { data, error } = await supabaseAdmin
       .from('reservations')
       // @ts-expect-error Supabase client infers never for update with custom Database type
-      .update({ status })
+      .update(updates)
       .eq('id', id)
       .select()
       .single()

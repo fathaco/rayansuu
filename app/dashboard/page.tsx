@@ -11,6 +11,16 @@ import type { ReservationRow } from '@/types/database'
 
 type ReservationWithEvent = ReservationRow & { event?: EventRow }
 
+function isImageUrl(url: string) {
+  return /\.(jpe?g|png|gif|webp)(\?|$)/i.test(url)
+}
+
+function paymentStatusLabel(r: ReservationWithEvent) {
+  if (r.payment_confirmed) return { label: 'مؤكد', className: 'bg-emerald-100 text-emerald-700' }
+  if (r.payment_proof_url) return { label: 'مرفوع - بانتظار التأكيد', className: 'bg-amber-100 text-amber-700' }
+  return { label: 'لم يرفع', className: 'bg-gray-100 text-gray-600' }
+}
+
 const BADGE_OPTIONS = [
   { value: 'جديد', color: 'bg-emerald-500' },
   { value: 'الأكثر مبيعاً', color: 'bg-amber-500' },
@@ -38,6 +48,7 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'reservations' | 'create'>('overview')
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const [confirmedId, setConfirmedId] = useState<string | null>(null)
+  const [paymentConfirmingId, setPaymentConfirmingId] = useState<string | null>(null)
   const [editingEvent, setEditingEvent] = useState<EventRow | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
@@ -267,6 +278,20 @@ export default function DashboardPage() {
       setConfirmedId(id)
       setTimeout(() => setConfirmedId(null), 1200)
     }
+  }
+
+  async function confirmPayment(id: string) {
+    setPaymentConfirmingId(id)
+    const res = await fetch(`/api/reservations/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ payment_confirmed: true }),
+    })
+    setPaymentConfirmingId(null)
+    if (!res.ok) return
+    setReservations((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, payment_confirmed: true } : r))
+    )
   }
 
   async function handleLogout() {
@@ -822,6 +847,37 @@ export default function DashboardPage() {
                             </div>
                           )}
                         </div>
+                        {/* Payment status + image for admin to verify */}
+                        <div className="pt-2 border-t border-gray-100 space-y-2">
+                          <p className="text-xs font-semibold text-gray-600">حالة الدفع</p>
+                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${paymentStatusLabel(r).className}`}>
+                            {paymentStatusLabel(r).label}
+                          </span>
+                          {r.payment_proof_url && (
+                            <div className="space-y-2">
+                              {isImageUrl(r.payment_proof_url) ? (
+                                <a href={r.payment_proof_url} target="_blank" rel="noopener noreferrer" className="block">
+                                  <img src={r.payment_proof_url} alt="إثبات الدفع" className="max-h-28 rounded-lg border border-gray-200 object-contain bg-gray-50 w-full max-w-[200px]" />
+                                </a>
+                              ) : (
+                                <a href={r.payment_proof_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-600 hover:underline block">
+                                  عرض الملف
+                                </a>
+                              )}
+                              {!r.payment_confirmed && (
+                                <button
+                                  type="button"
+                                  onClick={() => confirmPayment(r.id)}
+                                  disabled={paymentConfirmingId === r.id}
+                                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 text-sm font-medium disabled:opacity-70"
+                                >
+                                  {paymentConfirmingId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                                  تأكيد الدفع
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -836,6 +892,7 @@ export default function DashboardPage() {
                           <th className="py-4 px-4 text-right font-semibold">البريد</th>
                           <th className="py-4 px-4 text-right font-semibold">الجوال</th>
                           <th className="py-4 px-4 text-right font-semibold">الحالة</th>
+                          <th className="py-4 px-4 text-right font-semibold">حالة الدفع / الصورة</th>
                           <th className="py-4 px-4 text-right font-semibold">الإجراءات</th>
                         </tr>
                       </thead>
@@ -871,6 +928,37 @@ export default function DashboardPage() {
                                 {r.status === 'confirmed' && 'مؤكد'}
                                 {r.status === 'cancelled' && 'ملغى'}
                               </span>
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="space-y-2">
+                                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${paymentStatusLabel(r).className}`}>
+                                  {paymentStatusLabel(r).label}
+                                </span>
+                                {r.payment_proof_url && (
+                                  <>
+                                    {isImageUrl(r.payment_proof_url) ? (
+                                      <a href={r.payment_proof_url} target="_blank" rel="noopener noreferrer" className="block">
+                                        <img src={r.payment_proof_url} alt="إثبات الدفع" className="h-16 rounded border border-gray-200 object-cover object-top bg-gray-50" />
+                                      </a>
+                                    ) : (
+                                      <a href={r.payment_proof_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-600 hover:underline block">
+                                        عرض الملف
+                                      </a>
+                                    )}
+                                    {!r.payment_confirmed && (
+                                      <button
+                                        type="button"
+                                        onClick={() => confirmPayment(r.id)}
+                                        disabled={paymentConfirmingId === r.id}
+                                        className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 text-xs font-medium disabled:opacity-70"
+                                      >
+                                        {paymentConfirmingId === r.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                                        تأكيد الدفع
+                                      </button>
+                                    )}
+                                  </>
+                                )}
+                              </div>
                             </td>
                             <td className="py-4 px-4">
                               {r.status === 'pending' && (
