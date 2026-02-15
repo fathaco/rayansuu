@@ -88,4 +88,5 @@ export interface Database {
 
 export type EventRow = Database['public']['Tables']['events']['Row']
 export type EventInsert = Database['public']['Tables']['events']['Insert']
+export type EventUpdate = Database['public']['Tables']['events']['Update']
 export type ReservationRow = Database['public']['Tables']['reservations']['Row']

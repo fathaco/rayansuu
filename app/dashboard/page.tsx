@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { BookOpen, Check, X, Loader2, Calendar, Users, Clock, BarChart3, Plus, Menu as MenuIcon, Home, LogOut, Settings, TrendingUp } from 'lucide-react'
+import { BookOpen, Check, X, Loader2, Calendar, Users, Clock, BarChart3, Plus, Menu as MenuIcon, Home, LogOut, Settings, TrendingUp, Pencil, Trash2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
 import type { EventRow } from '@/types/database'
@@ -38,6 +38,8 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'reservations' | 'create'>('overview')
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const [confirmedId, setConfirmedId] = useState<string | null>(null)
+  const [editingEvent, setEditingEvent] = useState<EventRow | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const setTab = (tab: typeof activeTab) => {
     setActiveTab(tab)
@@ -136,19 +138,36 @@ export default function DashboardPage() {
     e.preventDefault()
     setFormLoading(true)
     try {
-      const res = await fetch('/api/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          badge: form.badge || null,
-          badge_color: form.badge_color || null,
-          image_url: form.image_url || null,
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'فشل في الإنشاء')
-      setEvents((prev) => [data, ...prev])
+      if (editingEvent) {
+        const res = await fetch(`/api/events/${editingEvent.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...form,
+            badge: form.badge || null,
+            badge_color: form.badge_color || null,
+            image_url: form.image_url || null,
+          }),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'فشل في التعديل')
+        setEvents((prev) => prev.map((ev) => (ev.id === editingEvent.id ? data : ev)))
+        setEditingEvent(null)
+      } else {
+        const res = await fetch('/api/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...form,
+            badge: form.badge || null,
+            badge_color: form.badge_color || null,
+            image_url: form.image_url || null,
+          }),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'فشل في الإنشاء')
+        setEvents((prev) => [data, ...prev])
+      }
       setForm({
         title: '',
         description: '',
@@ -165,6 +184,70 @@ export default function DashboardPage() {
       alert(err instanceof Error ? err.message : 'حدث خطأ')
     } finally {
       setFormLoading(false)
+    }
+  }
+
+  function startEditEvent(ev: EventRow) {
+    setEditingEvent(ev)
+    setForm({
+      title: ev.title,
+      description: ev.description,
+      category: ev.category,
+      hours: ev.hours,
+      lessons: ev.lessons,
+      badge: ev.badge ?? '',
+      badge_color: ev.badge_color ?? 'bg-emerald-500',
+      image_url: ev.image_url ?? '',
+      is_new: ev.is_new,
+    })
+    setTab('create')
+  }
+
+  function cancelEdit() {
+    setEditingEvent(null)
+    setForm({
+      title: '',
+      description: '',
+      category: '',
+      hours: '',
+      lessons: '',
+      badge: '',
+      badge_color: 'bg-emerald-500',
+      image_url: '',
+      is_new: true,
+    })
+    setTab('events')
+  }
+
+  async function handleDeleteEvent(id: string) {
+    if (!confirm('هل أنت متأكد من حذف هذه الفعالية؟ سيتم حذف الحجوزات المرتبطة بها أيضاً.')) return
+    setDeletingId(id)
+    try {
+      const res = await fetch(`/api/events/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || 'فشل في الحذف')
+      }
+      setEvents((prev) => prev.filter((ev) => ev.id !== id))
+      if (editingEvent?.id === id) {
+        setEditingEvent(null)
+        setForm({
+          title: '',
+          description: '',
+          category: '',
+          hours: '',
+          lessons: '',
+          badge: '',
+          badge_color: 'bg-emerald-500',
+          image_url: '',
+          is_new: true,
+        })
+        setTab('events')
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'حدث خطأ')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -381,18 +464,18 @@ export default function DashboardPage() {
               )}
             </button>
 
-            <button
-              type="button"
-              onClick={() => setTab('create')}
-              className={`w-full flex items-center gap-3 px-4 py-3.5 min-h-[48px] rounded-xl font-medium transition-all ${
-                activeTab === 'create'
-                  ? 'bg-gradient-primary text-white shadow-lg'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <Plus className="w-5 h-5" />
-              <span>إضافة فعالية</span>
-            </button>
+<button
+                    type="button"
+                    onClick={() => { setEditingEvent(null); setTab('create'); }}
+                    className={`w-full flex items-center gap-3 px-4 py-3.5 min-h-[48px] rounded-xl font-medium transition-all ${
+                      activeTab === 'create'
+                        ? 'bg-gradient-primary text-white shadow-lg'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Plus className="w-5 h-5" />
+                    <span>إضافة فعالية</span>
+                  </button>
           </nav>
 
           {/* Bottom Actions - touch-friendly */}
@@ -506,7 +589,7 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                   <button
                     type="button"
-                    onClick={() => setTab('create')}
+                    onClick={() => { setEditingEvent(null); setTab('create'); }}
                     className="min-h-[56px] sm:min-h-[64px] p-4 rounded-xl border-2 border-dashed border-gray-300 hover:border-primary-500 hover:bg-primary-50 transition-all text-right group"
                   >
                     <Plus className="w-8 h-8 text-gray-400 group-hover:text-primary-500 mb-2" />
@@ -587,14 +670,14 @@ export default function DashboardPage() {
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
                 <h2 className="text-base sm:text-lg font-bold text-gray-800">جميع الفعاليات</h2>
-                <button
-                  type="button"
-                  onClick={() => setTab('create')}
-                  className="min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-primary text-white font-medium hover:shadow-lg transition-all w-full sm:w-auto"
-                >
-                  <Plus className="w-4 h-4" />
-                  إضافة فعالية
-                </button>
+<button
+                    type="button"
+                    onClick={() => { setEditingEvent(null); setTab('create'); }}
+                    className="min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-primary text-white font-medium hover:shadow-lg transition-all w-full sm:w-auto"
+                  >
+                    <Plus className="w-4 h-4" />
+                    إضافة فعالية
+                  </button>
               </div>
               {loading ? (
                 <div className="flex items-center justify-center py-12">
@@ -605,7 +688,7 @@ export default function DashboardPage() {
                   <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500 mb-4">لا توجد فعاليات حالياً</p>
                   <button
-                    onClick={() => setTab('create')}
+                    onClick={() => { setEditingEvent(null); setTab('create'); }}
                     className="text-primary-500 font-medium hover:underline"
                   >
                     أنشئ أول فعالية
@@ -636,12 +719,33 @@ export default function DashboardPage() {
                           </span>
                         )}
                       </div>
-                      <Link
-                        href={`/events?highlight=${ev.id}`}
-                        className="text-primary-500 text-sm font-medium hover:underline flex items-center gap-1"
-                      >
-                        عرض التفاصيل ←
-                      </Link>
+                      <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+                        <Link
+                          href={`/events?highlight=${ev.id}`}
+                          className="text-primary-500 text-sm font-medium hover:underline flex items-center gap-1"
+                        >
+                          عرض التفاصيل ←
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => startEditEvent(ev)}
+                          className="min-h-[36px] inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-sm font-medium"
+                          title="تعديل"
+                        >
+                          <Pencil className="w-4 h-4" />
+                          تعديل
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteEvent(ev.id)}
+                          disabled={deletingId === ev.id}
+                          className="min-h-[36px] inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors text-sm font-medium disabled:opacity-70"
+                          title="حذف"
+                        >
+                          {deletingId === ev.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                          حذف
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -807,8 +911,12 @@ export default function DashboardPage() {
           {activeTab === 'create' && (
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
               <div className="mb-4 sm:mb-6">
-                <h2 className="text-base sm:text-lg font-bold text-gray-800 mb-2">إنشاء فعالية جديدة</h2>
-                <p className="text-sm text-gray-500">املأ النموذج لإضافة فعالية جديدة للمنصة</p>
+                <h2 className="text-base sm:text-lg font-bold text-gray-800 mb-2">
+                  {editingEvent ? 'تعديل الفعالية' : 'إنشاء فعالية جديدة'}
+                </h2>
+                <p className="text-sm text-gray-500">
+                  {editingEvent ? 'عدّل الحقول ثم احفظ التغييرات' : 'املأ النموذج لإضافة فعالية جديدة للمنصة'}
+                </p>
               </div>
               <form onSubmit={handleCreateEvent} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -951,15 +1059,15 @@ export default function DashboardPage() {
                     disabled={formLoading}
                     className="w-full sm:flex-1 min-h-[48px] py-3.5 px-6 rounded-xl bg-gradient-primary text-white font-semibold disabled:opacity-70 flex items-center justify-center gap-2 hover:shadow-xl transition-all"
                   >
-                    {formLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
-                    إنشاء الفعالية
+                    {formLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : editingEvent ? <Pencil className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                    {editingEvent ? 'حفظ التعديلات' : 'إنشاء الفعالية'}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setTab('events')}
+                    onClick={editingEvent ? cancelEdit : () => setTab('events')}
                     className="w-full sm:w-auto min-h-[48px] px-6 py-3.5 rounded-xl border-2 border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-all"
                   >
-                    إلغاء
+                    {editingEvent ? 'إلغاء التعديل' : 'إلغاء'}
                   </button>
                 </div>
               </form>
