@@ -25,6 +25,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
     const { data, error } = await supabase
       .from('reviews')
+      // @ts-expect-error Supabase client infers never for update with custom Database type
       .update(payload)
       .eq('id', id)
       .select()
