@@ -28,6 +28,7 @@ export async function POST(request: Request) {
     }
     const { data, error } = await supabase
       .from('reviews')
+      // @ts-expect-error Supabase client infers never for insert with custom Database type
       .insert(payload)
       .select()
       .single()
