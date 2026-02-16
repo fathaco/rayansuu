@@ -12,7 +12,8 @@ create table if not exists public.events (
   badge text,
   badge_color text,
   image_url text,
-  is_new boolean default true
+  is_new boolean default true,
+  price text
 );
 
 -- Reservations: one per event (event_id references events)
@@ -48,6 +49,20 @@ create policy "Allow public delete events" on public.events for delete using (tr
 create policy "Allow public read reservations" on public.reservations for select using (true);
 create policy "Allow public insert reservations" on public.reservations for insert with check (true);
 create policy "Allow public update reservations" on public.reservations for update using (true);
+
+-- Reviews: admin-posted student reviews (optional text and/or image)
+create table if not exists public.reviews (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz default now(),
+  content text,
+  image_url text
+);
+
+alter table public.reviews enable row level security;
+create policy "Allow public read reviews" on public.reviews for select using (true);
+create policy "Allow public insert reviews" on public.reviews for insert with check (true);
+create policy "Allow public update reviews" on public.reviews for update using (true);
+create policy "Allow public delete reviews" on public.reviews for delete using (true);
 
 -- Realtime: allow listening to reservation updates (run in SQL Editor if needed)
 -- alter publication supabase_realtime add table public.reservations;

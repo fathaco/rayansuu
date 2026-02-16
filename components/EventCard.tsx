@@ -1,20 +1,21 @@
 'use client'
 
+import Link from 'next/link'
 import { Target, BookOpen } from 'lucide-react'
 import type { EventRow } from '@/types/database'
 
 interface EventCardProps {
   event: EventRow
-  onRegister?: (event: EventRow) => void
 }
 
-export default function EventCard({ event, onRegister }: EventCardProps) {
+export default function EventCard({ event }: EventCardProps) {
   const showBadge = event.badge || (event.is_new ? 'جديد' : '')
   const badgeColor = event.badge_color || 'bg-emerald-500'
 
   return (
-    <div
-      className="group bg-white rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg
+    <Link
+      href={`/events/${event.id}`}
+      className="group bg-white rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg block min-w-0
                  hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 h-full flex flex-col"
     >
       <div className="relative bg-gradient-card border-b-4 border-gray-100 h-48 sm:h-56 md:h-64 overflow-hidden">
@@ -50,7 +51,7 @@ export default function EventCard({ event, onRegister }: EventCardProps) {
           {event.description}
         </p>
 
-        <div className="flex items-center gap-4 sm:gap-6 py-4 sm:py-5 border-t border-gray-100 mb-4 sm:mb-6 text-xs sm:text-sm text-gray-600">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6 py-4 sm:py-5 border-t border-gray-100 mb-4 sm:mb-6 text-xs sm:text-sm text-gray-600">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-primary-500 flex-shrink-0" />
             <span><span className="text-primary-600 font-medium">{event.hours ?? '—'}</span> ساعات</span>
@@ -59,18 +60,19 @@ export default function EventCard({ event, onRegister }: EventCardProps) {
             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-primary-500 flex-shrink-0" />
             <span><span className="text-primary-600 font-medium">{event.lessons ?? '—'}</span> دروس</span>
           </div>
+          {event.price && (
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-primary-500 flex-shrink-0" />
+              <span className="text-primary-600 font-semibold">{/^\d+$/.test(String(event.price).trim()) ? `${event.price} DZD` : event.price}</span>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <button
-            type="button"
-            onClick={() => onRegister?.(event)}
-            className="flex-1 bg-gradient-primary text-white py-3 px-4 sm:px-6 rounded-full
-                       font-semibold text-sm sm:text-base hover:shadow-xl hover:-translate-y-1
-                       transition-all duration-300 min-h-[48px]"
-          >
+          <span className="flex-1 bg-gradient-primary text-white py-3 px-4 sm:px-6 rounded-full
+                          font-semibold text-sm sm:text-base min-h-[48px] flex items-center justify-center">
             سجّل الآن
-          </button>
+          </span>
           <span className="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-full
                            bg-primary-100 text-primary-500 flex-shrink-0">
             <Target size={18} className="sm:w-5 sm:h-5" />
@@ -81,6 +83,6 @@ export default function EventCard({ event, onRegister }: EventCardProps) {
           <span className="text-primary-500 font-semibold text-xs sm:text-sm">منصة فتحة</span>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }

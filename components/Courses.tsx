@@ -4,13 +4,11 @@ import { useState, useEffect } from 'react'
 import { BookOpen } from 'lucide-react'
 import ScrollReveal from './ScrollReveal'
 import EventCard from './EventCard'
-import ReservationModal from './ReservationModal'
 import type { EventRow } from '@/types/database'
 
 export default function Courses() {
   const [events, setEvents] = useState<EventRow[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedEvent, setSelectedEvent] = useState<EventRow | null>(null)
 
   useEffect(() => {
     fetch('/api/events')
@@ -48,31 +46,21 @@ export default function Courses() {
             <p className="text-gray-400 text-sm mt-2">ستظهر هنا عند إضافة المدير للفعاليات.</p>
           </ScrollReveal>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          <div className="cards-grid-3">
             {events.map((event, index) => (
               <ScrollReveal
                 key={event.id}
                 animation="scale"
                 delay={index * 70}
-                className="h-full"
+                className="h-full min-w-0"
               >
-                <EventCard
-                  event={event}
-                  onRegister={(ev) => setSelectedEvent(ev)}
-                />
+                <EventCard event={event} />
               </ScrollReveal>
             ))}
           </div>
         )}
       </div>
 
-      {selectedEvent && (
-        <ReservationModal
-          event={selectedEvent}
-          onClose={() => setSelectedEvent(null)}
-          onSuccess={() => setSelectedEvent(null)}
-        />
-      )}
     </section>
   )
 }

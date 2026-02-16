@@ -22,6 +22,7 @@ export interface Database {
           badge_color: string | null
           image_url: string | null
           is_new: boolean
+          price: string | null
         }
         Insert: {
           id?: string
@@ -35,6 +36,7 @@ export interface Database {
           badge_color?: string | null
           image_url?: string | null
           is_new?: boolean
+          price?: string | null
         }
         Update: {
           id?: string
@@ -48,6 +50,7 @@ export interface Database {
           badge_color?: string | null
           image_url?: string | null
           is_new?: boolean
+          price?: string | null
         }
       }
       reservations: {
@@ -85,6 +88,26 @@ export interface Database {
           payment_confirmed?: boolean
         }
       }
+      reviews: {
+        Row: {
+          id: string
+          created_at: string
+          content: string | null
+          image_url: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          content?: string | null
+          image_url?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          content?: string | null
+          image_url?: string | null
+        }
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
@@ -96,3 +119,6 @@ export type EventRow = Database['public']['Tables']['events']['Row']
 export type EventInsert = Database['public']['Tables']['events']['Insert']
 export type EventUpdate = Database['public']['Tables']['events']['Update']
 export type ReservationRow = Database['public']['Tables']['reservations']['Row']
+export type ReviewRow = Database['public']['Tables']['reviews']['Row']
+export type ReviewInsert = Database['public']['Tables']['reviews']['Insert']
+export type ReviewUpdate = Database['public']['Tables']['reviews']['Update']

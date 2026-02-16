@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { BookOpen, Check, X, Loader2, Calendar, Users, Clock, BarChart3, Plus, Menu as MenuIcon, Home, LogOut, Settings, TrendingUp, Pencil, Trash2 } from 'lucide-react'
+import { BookOpen, Check, X, Loader2, Calendar, Users, Clock, BarChart3, Plus, Menu as MenuIcon, Home, LogOut, Settings, TrendingUp, Pencil, Trash2, MessageCircle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
 import type { EventRow } from '@/types/database'
 import type { ReservationRow } from '@/types/database'
+import type { ReviewRow } from '@/types/database'
 
 type ReservationWithEvent = ReservationRow & { event?: EventRow }
 
@@ -45,12 +46,19 @@ export default function DashboardPage() {
   const [formLoading, setFormLoading] = useState(false)
   const [imageUploading, setImageUploading] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'reservations' | 'create'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'reservations' | 'create' | 'reviews'>('overview')
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const [confirmedId, setConfirmedId] = useState<string | null>(null)
   const [paymentConfirmingId, setPaymentConfirmingId] = useState<string | null>(null)
   const [editingEvent, setEditingEvent] = useState<EventRow | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [reviews, setReviews] = useState<ReviewRow[]>([])
+  const [reviewsLoading, setReviewsLoading] = useState(true)
+  const [reviewForm, setReviewForm] = useState({ content: '', image_url: '' })
+  const [editingReview, setEditingReview] = useState<ReviewRow | null>(null)
+  const [reviewFormLoading, setReviewFormLoading] = useState(false)
+  const [reviewImageUploading, setReviewImageUploading] = useState(false)
+  const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null)
 
   const setTab = (tab: typeof activeTab) => {
     setActiveTab(tab)
@@ -66,6 +74,7 @@ export default function DashboardPage() {
     badge_color: 'bg-emerald-500',
     image_url: '',
     is_new: true,
+    price: '',
   })
 
   // Require login + admin (when logged in, check admin)
@@ -129,6 +138,19 @@ export default function DashboardPage() {
     fetchReservations()
   }, [isAdmin])
 
+  function fetchReviews() {
+    fetch('/api/reviews')
+      .then((r) => r.json())
+      .then((data) => setReviews(Array.isArray(data) ? data : []))
+      .catch(() => setReviews([]))
+      .finally(() => setReviewsLoading(false))
+  }
+
+  useEffect(() => {
+    if (!isAdmin) return
+    fetchReviews()
+  }, [isAdmin])
+
   // Realtime: when a reservation is updated (accept/decline) or inserted, refresh the list
   useEffect(() => {
     if (!isAdmin) return
@@ -158,6 +180,7 @@ export default function DashboardPage() {
             badge: form.badge || null,
             badge_color: form.badge_color || null,
             image_url: form.image_url || null,
+            price: form.price || null,
           }),
         })
         const data = await res.json()
@@ -173,6 +196,7 @@ export default function DashboardPage() {
             badge: form.badge || null,
             badge_color: form.badge_color || null,
             image_url: form.image_url || null,
+            price: form.price || null,
           }),
         })
         const data = await res.json()
@@ -189,6 +213,7 @@ export default function DashboardPage() {
         badge_color: 'bg-emerald-500',
         image_url: '',
         is_new: true,
+        price: '',
       })
       setTab('events')
     } catch (err) {
@@ -210,6 +235,7 @@ export default function DashboardPage() {
       badge_color: ev.badge_color ?? 'bg-emerald-500',
       image_url: ev.image_url ?? '',
       is_new: ev.is_new,
+      price: ev.price ?? '',
     })
     setTab('create')
   }
@@ -226,8 +252,107 @@ export default function DashboardPage() {
       badge_color: 'bg-emerald-500',
       image_url: '',
       is_new: true,
+      price: '',
     })
     setTab('events')
+  }
+
+  async function handleCreateReview(e: React.FormEvent) {
+    e.preventDefault()
+    if (!reviewForm.content?.trim() && !reviewForm.image_url?.trim()) {
+      alert('أضف نصاً أو صورة على الأقل')
+      return
+    }
+    setReviewFormLoading(true)
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({
+          content: reviewForm.content?.trim() || null,
+          image_url: reviewForm.image_url || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'فشل في الإضافة')
+      setReviews((prev) => [data, ...prev])
+      setReviewForm({ content: '', image_url: '' })
+      setEditingReview(null)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'حدث خطأ')
+    } finally {
+      setReviewFormLoading(false)
+    }
+  }
+
+  function startEditReview(r: ReviewRow) {
+    setEditingReview(r)
+    setReviewForm({ content: r.content ?? '', image_url: r.image_url ?? '' })
+    setTab('reviews')
+  }
+
+  function cancelEditReview() {
+    setEditingReview(null)
+    setReviewForm({ content: '', image_url: '' })
+  }
+
+  async function handleUpdateReview(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editingReview) return
+    if (!reviewForm.content?.trim() && !reviewForm.image_url?.trim()) {
+      alert('أضف نصاً أو صورة على الأقل')
+      return
+    }
+    setReviewFormLoading(true)
+    try {
+      const res = await fetch(`/api/reviews/${editingReview.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({
+          content: reviewForm.content?.trim() || null,
+          image_url: reviewForm.image_url || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'فشل في التعديل')
+      setReviews((prev) => prev.map((rev) => (rev.id === editingReview.id ? data : rev)))
+      setEditingReview(null)
+      setReviewForm({ content: '', image_url: '' })
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'حدث خطأ')
+    } finally {
+      setReviewFormLoading(false)
+    }
+  }
+
+  async function handleDeleteReview(id: string) {
+    if (!confirm('حذف هذه المراجعة؟')) return
+    setDeletingReviewId(id)
+    try {
+      const res = await fetch(`/api/reviews/${id}`, {
+        method: 'DELETE',
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || 'فشل في الحذف')
+      }
+      setReviews((prev) => prev.filter((r) => r.id !== id))
+      if (editingReview?.id === id) {
+        setEditingReview(null)
+        setReviewForm({ content: '', image_url: '' })
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'حدث خطأ')
+    } finally {
+      setDeletingReviewId(null)
+    }
   }
 
   async function handleDeleteEvent(id: string) {
@@ -252,6 +377,7 @@ export default function DashboardPage() {
           badge_color: 'bg-emerald-500',
           image_url: '',
           is_new: true,
+          price: '',
         })
         setTab('events')
       }
@@ -501,6 +627,26 @@ export default function DashboardPage() {
                     <Plus className="w-5 h-5" />
                     <span>إضافة فعالية</span>
                   </button>
+
+            <button
+              type="button"
+              onClick={() => setTab('reviews')}
+              className={`w-full flex items-center gap-3 px-4 py-3.5 min-h-[48px] rounded-xl font-medium transition-all ${
+                activeTab === 'reviews'
+                  ? 'bg-gradient-primary text-white shadow-lg'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <MessageCircle className="w-5 h-5" />
+              <span>المراجعات</span>
+              {reviews.length > 0 && (
+                <span className={`mr-auto text-xs px-2 py-1 rounded-full ${
+                  activeTab === 'reviews' ? 'bg-white/20' : 'bg-gray-200'
+                }`}>
+                  {reviews.length}
+                </span>
+              )}
+            </button>
           </nav>
 
           {/* Bottom Actions - touch-friendly */}
@@ -552,6 +698,7 @@ export default function DashboardPage() {
                   {activeTab === 'events' && 'إدارة الفعاليات'}
                   {activeTab === 'reservations' && 'إدارة الحجوزات'}
                   {activeTab === 'create' && 'إضافة فعالية جديدة'}
+                  {activeTab === 'reviews' && 'المراجعات'}
                 </h1>
                 <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">مرحباً بك في لوحة التحكم</p>
               </div>
@@ -736,6 +883,11 @@ export default function DashboardPage() {
                               <BookOpen className="w-3.5 h-3.5" />
                               {ev.lessons}
                             </span>
+                            {ev.price && (
+                              <span className="flex items-center gap-1 text-primary-600 font-medium">
+                                {/^\d+$/.test(String(ev.price).trim()) ? `${ev.price} DZD` : ev.price}
+                              </span>
+                            )}
                           </div>
                         </div>
                         {ev.badge && (
@@ -1075,6 +1227,16 @@ export default function DashboardPage() {
                   </div>
 
                   <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">السعر (د.ج - اختياري)</label>
+                    <input
+                      value={form.price}
+                      onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                      placeholder="مثال: 100 DZD أو مجاني"
+                    />
+                  </div>
+
+                  <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">الشارة (اختياري)</label>
                     <select
                       value={form.badge}
@@ -1159,6 +1321,111 @@ export default function DashboardPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          )}
+
+          {/* Reviews Tab */}
+          {activeTab === 'reviews' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                <h2 className="text-base sm:text-lg font-bold text-gray-800 mb-4">
+                  {editingReview ? 'تعديل المراجعة' : 'إضافة مراجعة جديدة'}
+                </h2>
+                <p className="text-sm text-gray-500 mb-4">
+                  أضف مراجعة من طالب (نص و/أو صورة). الحقلان اختياريان لكن يفضّل وجود أحدهما على الأقل.
+                </p>
+                <form onSubmit={editingReview ? handleUpdateReview : handleCreateReview} className="space-y-4 max-w-2xl">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">النص (اختياري)</label>
+                    <textarea
+                      value={reviewForm.content}
+                      onChange={(e) => setReviewForm((f) => ({ ...f, content: e.target.value }))}
+                      rows={4}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                      placeholder="نص المراجعة أو شهادة الطالب..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">الصورة (اختياري)</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-100 file:text-primary-700"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0]
+                        if (!file) return
+                        setReviewImageUploading(true)
+                        try {
+                          const fd = new FormData()
+                          fd.set('file', file)
+                          fd.set('folder', 'reviews')
+                          const res = await fetch('/api/upload', { method: 'POST', body: fd })
+                          const data = await res.json()
+                          if (res.ok && data.url) setReviewForm((f) => ({ ...f, image_url: data.url }))
+                          else alert(data.error || 'فشل الرفع')
+                        } finally {
+                          setReviewImageUploading(false)
+                          e.target.value = ''
+                        }
+                      }}
+                      disabled={reviewImageUploading}
+                    />
+                    {reviewImageUploading && <p className="text-sm text-primary-600 mt-1">جاري الرفع...</p>}
+                    {reviewForm.image_url && (
+                      <div className="mt-2">
+                        <img src={reviewForm.image_url} alt="معاينة" className="max-h-24 rounded-lg border border-gray-200 object-cover" />
+                        <button type="button" onClick={() => setReviewForm((f) => ({ ...f, image_url: '' }))} className="text-sm text-red-600 mt-1">إزالة الصورة</button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      type="submit"
+                      disabled={reviewFormLoading}
+                      className="min-h-[44px] px-5 py-2.5 rounded-xl bg-gradient-primary text-white font-semibold disabled:opacity-70 flex items-center gap-2"
+                    >
+                      {reviewFormLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                      {editingReview ? 'حفظ التعديلات' : 'إضافة المراجعة'}
+                    </button>
+                    {editingReview && (
+                      <button type="button" onClick={cancelEditReview} className="min-h-[44px] px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-700 font-semibold hover:bg-gray-50">
+                        إلغاء
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </div>
+
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                <h2 className="text-base sm:text-lg font-bold text-gray-800 mb-4">جميع المراجعات</h2>
+                {reviewsLoading ? (
+                  <div className="flex justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+                  </div>
+                ) : reviews.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">لا توجد مراجعات. أضف أول مراجعة من النموذج أعلاه.</p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {reviews.map((r) => (
+                      <div key={r.id} className="rounded-xl border border-gray-200 p-4 flex flex-col gap-3">
+                        {r.image_url && (
+                          <img src={r.image_url} alt="مراجعة" className="w-full h-40 object-cover rounded-lg bg-gray-100" />
+                        )}
+                        {r.content && <p className="text-gray-700 text-sm leading-relaxed">{r.content}</p>}
+                        {!r.content && !r.image_url && <p className="text-gray-400 text-sm">مراجعة بدون محتوى</p>}
+                        <div className="flex gap-2 pt-2 border-t border-gray-100">
+                          <button type="button" onClick={() => startEditReview(r)} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 text-sm font-medium">
+                            <Pencil className="w-4 h-4" /> تعديل
+                          </button>
+                          <button type="button" onClick={() => handleDeleteReview(r.id)} disabled={deletingReviewId === r.id} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm font-medium disabled:opacity-70">
+                            {deletingReviewId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} حذف
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

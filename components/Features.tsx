@@ -61,7 +61,7 @@ export default function Features() {
         </ScrollReveal>
 
         {/* Features Grid - stagger children */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+        <div className="cards-grid-3">
           {features.map((feature, index) => {
             const Icon = feature.icon
             return (
@@ -69,12 +69,12 @@ export default function Features() {
                 key={index}
                 animation="scale"
                 delay={index * 80}
-                className="h-full"
+                className="h-full min-w-0"
               >
                 <div
                   className="group relative bg-white border border-gray-100 rounded-xl sm:rounded-2xl p-5 sm:p-6 lg:p-8 
                            transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl 
-                           hover:border-t-4 hover:border-t-primary-500 cursor-pointer h-full"
+                           hover:border-t-4 hover:border-t-primary-500 cursor-pointer h-full overflow-hidden min-w-0"
                 >
                   <div className="mb-4 sm:mb-6 inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 
                                 rounded-xl sm:rounded-2xl bg-gradient-primary text-white 

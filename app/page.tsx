@@ -3,6 +3,7 @@ import Hero from '@/components/Hero'
 import Features from '@/components/Features'
 import Stats from '@/components/Stats'
 import Courses from '@/components/Courses'
+import Reviews from '@/components/Reviews'
 import Hadiths from '@/components/Hadiths'
 import QuranVerses from '@/components/QuranVerses'
 import Tips from '@/components/Tips'
@@ -19,6 +20,7 @@ export default function Home() {
       <Features />
       <Stats />
       <Courses />
+      <Reviews />
       <Hadiths />
       <QuranVerses />
       <Tips />

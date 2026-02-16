@@ -2,11 +2,32 @@ import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase/client'
 import type { EventUpdate } from '@/types/database'
 
-type RouteContext = { params: { id: string } }
+type RouteContext = { params: Promise<{ id: string }> }
+
+export async function GET(_request: Request, context: RouteContext) {
+  try {
+    const { id } = await context.params
+    if (!id) {
+      return NextResponse.json({ error: 'معرف الفعالية مطلوب' }, { status: 400 })
+    }
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('id', id)
+      .single()
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 404 })
+    }
+    return NextResponse.json(data)
+  } catch (err) {
+    console.error('[GET /api/events/[id]]', err)
+    return NextResponse.json({ error: 'خطأ في الخادم' }, { status: 500 })
+  }
+}
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
-    const id = context.params.id
+    const { id } = await context.params
     if (!id) {
       return NextResponse.json({ error: 'معرف الفعالية مطلوب' }, { status: 400 })
     }
@@ -21,6 +42,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       badge_color,
       image_url,
       is_new,
+      price,
     } = body
     const payload: EventUpdate = {}
     if (title !== undefined) payload.title = title
@@ -32,6 +54,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (badge_color !== undefined) payload.badge_color = badge_color ?? null
     if (image_url !== undefined) payload.image_url = image_url ?? null
     if (is_new !== undefined) payload.is_new = is_new
+    if (price !== undefined) payload.price = price ?? null
     if (Object.keys(payload).length === 0) {
       return NextResponse.json({ error: 'لا توجد حقول للتحديث' }, { status: 400 })
     }
@@ -55,7 +78,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
 export async function DELETE(_request: Request, context: RouteContext) {
   try {
-    const id = context.params.id
+    const { id } = await context.params
     if (!id) {
       return NextResponse.json({ error: 'معرف الفعالية مطلوب' }, { status: 400 })
     }

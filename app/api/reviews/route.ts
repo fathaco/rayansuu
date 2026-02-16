@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase/client'
-import type { EventInsert } from '@/types/database'
+import { isAdmin } from '@/lib/auth-admin'
+import type { ReviewInsert } from '@/types/database'
 
 export async function GET() {
   const { data, error } = await supabase
-    .from('events')
+    .from('reviews')
     .select('*')
     .order('created_at', { ascending: false })
   if (error) {
@@ -14,41 +15,19 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const ok = await isAdmin(request)
+  if (!ok) {
+    return NextResponse.json({ error: 'غير مصرح' }, { status: 403 })
+  }
   try {
     const body = await request.json()
-    const {
-      title,
-      description,
-      category,
-      hours,
-      lessons,
-      badge,
-      badge_color,
-      image_url,
-      is_new,
-      price,
-    } = body
-    if (!title || !description || !category || !hours || !lessons) {
-      return NextResponse.json(
-        { error: 'title, description, category, hours, lessons مطلوبة' },
-        { status: 400 }
-      )
-    }
-    const payload: EventInsert = {
-      title,
-      description,
-      category,
-      hours,
-      lessons,
-      badge: badge ?? null,
-      badge_color: badge_color ?? null,
+    const { content, image_url } = body
+    const payload: ReviewInsert = {
+      content: content ?? null,
       image_url: image_url ?? null,
-      is_new: is_new ?? true,
-      price: price ?? null,
     }
     const { data, error } = await supabase
-      .from('events')
-      // @ts-ignore - Supabase Database generic infers never for insert with custom types
+      .from('reviews')
       .insert(payload)
       .select()
       .single()

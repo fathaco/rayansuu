@@ -3,13 +3,11 @@
 import { useState, useEffect } from 'react'
 import Header from '@/components/Header'
 import EventCard from '@/components/EventCard'
-import ReservationModal from '@/components/ReservationModal'
 import type { EventRow } from '@/types/database'
 
 export default function EventsPage() {
   const [events, setEvents] = useState<EventRow[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedEvent, setSelectedEvent] = useState<EventRow | null>(null)
 
   useEffect(() => {
     fetch('/api/events')
@@ -43,26 +41,17 @@ export default function EventsPage() {
           ) : events.length === 0 ? (
             <p className="text-center text-gray-500 py-12">لا توجد فعاليات حالياً.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+            <div className="cards-grid-3">
               {events.map((event) => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  onRegister={(ev) => setSelectedEvent(ev)}
-                />
+                <div key={event.id} className="min-w-0 h-full">
+                  <EventCard event={event} />
+                </div>
               ))}
             </div>
           )}
         </div>
       </section>
 
-      {selectedEvent && (
-        <ReservationModal
-          event={selectedEvent}
-          onClose={() => setSelectedEvent(null)}
-          onSuccess={() => setSelectedEvent(null)}
-        />
-      )}
     </main>
   )
 }

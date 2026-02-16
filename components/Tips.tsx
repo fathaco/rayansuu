@@ -58,22 +58,22 @@ export default function Tips() {
           </p>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto">
+        <div className="cards-grid-3 max-w-6xl mx-auto">
           {tips.map((tip, index) => (
-            <ScrollReveal key={tip.number} animation="slideStart" delay={index * 80}>
+            <ScrollReveal key={tip.number} animation="slideStart" delay={index * 80} className="min-w-0">
               <div
-                className="group relative bg-gray-50 border border-gray-100 rounded-xl sm:rounded-2xl p-5 sm:p-6 lg:p-8 
-                         transition-all duration-300 hover:border-primary-200 hover:shadow-lg 
-                         hover:-translate-y-1 h-full"
+                className="group relative bg-gray-50 border border-gray-100 rounded-xl sm:rounded-2xl 
+                         p-6 sm:p-7 lg:p-10 transition-all duration-300 hover:border-primary-200 hover:shadow-lg 
+                         hover:-translate-y-1 h-full overflow-hidden"
               >
-                <div className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-primary 
-                              text-white flex items-center justify-center text-lg sm:text-xl font-bold">
+                <div className="absolute top-6 right-6 sm:top-7 sm:right-7 lg:top-8 lg:right-8 w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-primary 
+                              text-white flex items-center justify-center text-lg sm:text-xl font-bold shrink-0 z-10">
                   {tip.number}
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4 me-12 sm:me-14 group-hover:text-primary-500 transition-colors">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 sm:mb-5 pr-14 sm:pr-16 group-hover:text-primary-500 transition-colors">
                   {tip.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed text-sm sm:text-base">{tip.description}</p>
+                <p className="text-gray-600 leading-relaxed text-sm sm:text-base mt-1">{tip.description}</p>
               </div>
             </ScrollReveal>
           ))}

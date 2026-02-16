@@ -41,7 +41,30 @@
   .card-hover {
     @apply transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl;
   }
-  
+
+  /* Card grids: prevent overlap, wrap on small screens, 3 cols on desktop, RTL-safe */
+  .cards-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+    direction: inherit;
+  }
+  @media (min-width: 640px) {
+    .cards-grid-3 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.5rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .cards-grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 2rem;
+    }
+  }
+  .cards-grid-3 > * {
+    min-width: 0;
+  }
+
   .gradient-text {
     @apply bg-gradient-primary bg-clip-text text-transparent;
   }

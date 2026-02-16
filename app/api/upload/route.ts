@@ -10,8 +10,9 @@ export async function POST(request: Request) {
     if (!file || !file.size) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
+    const folder = (formData.get('folder') as string) || 'events'
     const ext = file.name.split('.').pop() || 'jpg'
-    const path = `events/${crypto.randomUUID()}.${ext}`
+    const path = `${folder}/${crypto.randomUUID()}.${ext}`
     const buf = await file.arrayBuffer()
     const { error } = await supabaseAdmin.storage.from(BUCKET).upload(path, buf, {
       contentType: file.type,
