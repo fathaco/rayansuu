@@ -620,6 +620,7 @@ export default function DashboardPage() {
           image_url: '',
           is_new: true,
           price: '',
+          tutorial_link: '',
         })
         setTab('events')
       }
