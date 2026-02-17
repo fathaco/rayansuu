@@ -310,12 +310,13 @@ export default function DashboardPage() {
     }
     setReviewFormLoading(true)
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`
+      }
       const res = await fetch('/api/reviews', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-        },
+        headers,
         body: JSON.stringify({
           content: reviewForm.content?.trim() || null,
           image_url: reviewForm.image_url || null,
@@ -353,12 +354,13 @@ export default function DashboardPage() {
     }
     setReviewFormLoading(true)
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`
+      }
       const res = await fetch(`/api/reviews/${editingReview.id}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-        },
+        headers,
         body: JSON.stringify({
           content: reviewForm.content?.trim() || null,
           image_url: reviewForm.image_url || null,
