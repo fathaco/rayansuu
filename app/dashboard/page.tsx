@@ -77,7 +77,19 @@ export default function DashboardPage() {
     setActiveTab(tab)
     setSidebarOpen(false) // close drawer on mobile when navigating
   }
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    title: string
+    description: string
+    category: string
+    hours: string
+    lessons: string
+    badge: string
+    badge_color: string
+    image_url: string
+    is_new: boolean
+    price: string
+    tutorial_link: string
+  }>({
     title: '',
     description: '',
     category: '',
