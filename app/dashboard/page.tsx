@@ -380,9 +380,13 @@ export default function DashboardPage() {
     if (!confirm('حذف هذه المراجعة؟')) return
     setDeletingReviewId(id)
     try {
+      const headers: Record<string, string> = {}
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`
+      }
       const res = await fetch(`/api/reviews/${id}`, {
         method: 'DELETE',
-        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+        headers,
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
@@ -408,12 +412,13 @@ export default function DashboardPage() {
     }
     setFaqFormLoading(true)
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`
+      }
       const res = await fetch('/api/faqs', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-        },
+        headers,
         body: JSON.stringify({ question: faqForm.question.trim(), answer: faqForm.answer.trim(), display_order: faqs.length }),
       })
       const data = await res.json()
@@ -432,12 +437,13 @@ export default function DashboardPage() {
     if (!editingFaq || !faqForm.question.trim() || !faqForm.answer.trim()) return
     setFaqFormLoading(true)
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`
+      }
       const res = await fetch(`/api/faqs/${editingFaq.id}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-        },
+        headers,
         body: JSON.stringify({ question: faqForm.question.trim(), answer: faqForm.answer.trim() }),
       })
       const data = await res.json()
@@ -467,9 +473,13 @@ export default function DashboardPage() {
     if (!confirm('حذف هذا السؤال؟')) return
     setDeletingFaqId(id)
     try {
+      const headers: Record<string, string> = {}
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`
+      }
       const res = await fetch(`/api/faqs/${id}`, {
         method: 'DELETE',
-        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+        headers,
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
@@ -491,11 +501,14 @@ export default function DashboardPage() {
     if (!confirm(`استيراد ${DEFAULT_FAQS.length} سؤالاً افتراضياً؟ سيتم إضافتها إلى القائمة ويمكنك تعديلها أو حذفها لاحقاً.`)) return
     setImportingFaqs(true)
     try {
-      const token = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`
+      }
       for (let i = 0; i < DEFAULT_FAQS.length; i++) {
         const res = await fetch('/api/faqs', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...token },
+          headers,
           body: JSON.stringify({ question: DEFAULT_FAQS[i].question, answer: DEFAULT_FAQS[i].answer, display_order: i }),
         })
         if (!res.ok) {
@@ -516,12 +529,13 @@ export default function DashboardPage() {
     if (!footerData) return
     setFooterSaving(true)
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`
+      }
       const res = await fetch('/api/footer', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-        },
+        headers,
         body: JSON.stringify({
           tagline: footerData.tagline,
           social_facebook: footerData.social_facebook,
