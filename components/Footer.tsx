@@ -1,29 +1,101 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Facebook, Youtube, Instagram, Twitter } from 'lucide-react'
 import ScrollReveal from './ScrollReveal'
+import { DEFAULT_FOOTER } from '@/lib/footer-defaults'
 
-const footerLinks = {
-  quickLinks: [
-    { label: 'عن المنصة', href: '#about' },
-    { label: 'الدورات', href: '#courses' },
-    { label: 'الأسئلة الشائعة', href: '#faq' },
-    { label: 'تواصل معنا', href: '#contact' },
-  ],
-  sections: [
-    { label: 'علوم القرآن', href: '#' },
-    { label: 'الحديث الشريف', href: '#' },
-    { label: 'الفقه وأصوله', href: '#' },
-    { label: 'العقيدة', href: '#' },
-  ],
-  contact: [
-    { label: 'info@fatha.com', href: 'mailto:info@fatha.com' },
-    { label: '966500000000+', href: 'tel:+966500000000' },
-    { label: 'الرياض، السعودية', href: '#' },
-  ],
+type FooterData = {
+  tagline: string | null
+  social_facebook: string | null
+  social_youtube: string | null
+  social_instagram: string | null
+  social_twitter: string | null
+  quick_links: { label: string; href: string }[]
+  sections: { label: string; href: string }[]
+  contact: { label: string; href: string }[]
+  copyright_text: string | null
+  privacy_url: string | null
+  terms_url: string | null
 }
 
+const SOCIAL_ICONS = [
+  { Icon: Facebook, key: 'social_facebook' as const },
+  { Icon: Youtube, key: 'social_youtube' as const },
+  { Icon: Instagram, key: 'social_instagram' as const },
+  { Icon: Twitter, key: 'social_twitter' as const },
+]
+
 export default function Footer() {
+  const [data, setData] = useState<FooterData | null>(null)
+
+  function fetchFooter() {
+    // Force no cache - fetch fresh data every time
+    fetch(`/api/footer?t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+      },
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error('Failed to fetch footer')
+        return r.json()
+      })
+      .then((res) => {
+        if (res && (res.quick_links || res.tagline != null)) {
+          setData({
+            tagline: res.tagline ?? DEFAULT_FOOTER.tagline,
+            social_facebook: res.social_facebook ?? DEFAULT_FOOTER.social_facebook,
+            social_youtube: res.social_youtube ?? DEFAULT_FOOTER.social_youtube,
+            social_instagram: res.social_instagram ?? DEFAULT_FOOTER.social_instagram,
+            social_twitter: res.social_twitter ?? DEFAULT_FOOTER.social_twitter,
+            quick_links: Array.isArray(res.quick_links) && res.quick_links.length > 0 ? res.quick_links : DEFAULT_FOOTER.quick_links,
+            sections: Array.isArray(res.sections) && res.sections.length > 0 ? res.sections : DEFAULT_FOOTER.sections,
+            contact: Array.isArray(res.contact) && res.contact.length > 0 ? res.contact : DEFAULT_FOOTER.contact,
+            copyright_text: res.copyright_text ?? DEFAULT_FOOTER.copyright_text,
+            privacy_url: res.privacy_url ?? DEFAULT_FOOTER.privacy_url,
+            terms_url: res.terms_url ?? DEFAULT_FOOTER.terms_url,
+          })
+        } else {
+          setData(DEFAULT_FOOTER)
+        }
+      })
+      .catch(() => setData(DEFAULT_FOOTER))
+  }
+
+  useEffect(() => {
+    fetchFooter()
+    
+    // Refetch every 10 seconds to catch changes
+    const interval = setInterval(() => {
+      fetchFooter()
+    }, 10000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  // Refetch when page becomes visible or window gains focus (e.g., admin saves changes and switches back to site)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchFooter()
+      }
+    }
+    const handleFocus = () => {
+      fetchFooter()
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [])
+
+  const footer = data ?? DEFAULT_FOOTER
+  const socialLinks = SOCIAL_ICONS.map(({ Icon, key }) => ({ Icon, href: footer[key] || '#' }))
+
   return (
     <footer className="bg-gray-900 text-white">
       <div className="container mx-auto px-4 sm:px-5 lg:px-8 py-10 sm:py-12 lg:py-16">
@@ -49,15 +121,10 @@ export default function Footer() {
                 <span className="text-lg sm:text-xl font-bold">منصة فتحة</span>
               </div>
               <p className="text-gray-400 leading-relaxed mb-4 sm:mb-6 text-sm sm:text-base">
-                منصة فتحة الإلكترونية هي الوجهة الأولى لطالبي العلوم الشرعية في العالم العربي
+                {footer.tagline}
               </p>
               <div className="flex items-center gap-2 sm:gap-3">
-                {[
-                  { Icon: Facebook, href: '#' },
-                  { Icon: Youtube, href: '#' },
-                  { Icon: Instagram, href: '#' },
-                  { Icon: Twitter, href: '#' },
-                ].map(({ Icon, href }, i) => (
+                {socialLinks.map(({ Icon, href }, i) => (
                   <a
                     key={i}
                     href={href}
@@ -76,7 +143,7 @@ export default function Footer() {
             <div>
               <h3 className="text-base sm:text-lg font-bold mb-4 sm:mb-6">روابط سريعة</h3>
               <ul className="space-y-2 sm:space-y-3">
-                {footerLinks.quickLinks.map((link, index) => (
+                {footer.quick_links.map((link, index) => (
                   <li key={index}>
                     <a
                       href={link.href}
@@ -95,7 +162,7 @@ export default function Footer() {
             <div>
               <h3 className="text-base sm:text-lg font-bold mb-4 sm:mb-6">الأقسام العلمية</h3>
               <ul className="space-y-2 sm:space-y-3">
-                {footerLinks.sections.map((link, index) => (
+                {footer.sections.map((link, index) => (
                   <li key={index}>
                     <a
                       href={link.href}
@@ -114,7 +181,7 @@ export default function Footer() {
             <div>
               <h3 className="text-base sm:text-lg font-bold mb-4 sm:mb-6">تواصل معنا</h3>
               <ul className="space-y-2 sm:space-y-3">
-                {footerLinks.contact.map((link, index) => (
+                {footer.contact.map((link, index) => (
                   <li key={index}>
                     <a
                       href={link.href}
@@ -133,13 +200,13 @@ export default function Footer() {
         <div className="pt-6 sm:pt-8 border-t border-gray-800">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 text-center sm:text-start">
             <p className="text-gray-400 text-xs sm:text-sm">
-              © 2025 فتحة. جميع الحقوق محفوظة.
+              {footer.copyright_text}
             </p>
             <div className="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm text-gray-400">
-              <a href="#" className="hover:text-primary-400 transition-colors py-1">
+              <a href={footer.privacy_url || '#'} className="hover:text-primary-400 transition-colors py-1">
                 سياسة الخصوصية
               </a>
-              <a href="#" className="hover:text-primary-400 transition-colors py-1">
+              <a href={footer.terms_url || '#'} className="hover:text-primary-400 transition-colors py-1">
                 الشروط والأحكام
               </a>
             </div>

@@ -27,6 +27,7 @@ export async function POST(request: Request) {
       image_url,
       is_new,
       price,
+      tutorial_link,
     } = body
     if (!title || !description || !category || !hours || !lessons) {
       return NextResponse.json(
@@ -45,6 +46,7 @@ export async function POST(request: Request) {
       image_url: image_url ?? null,
       is_new: is_new ?? true,
       price: price ?? null,
+      tutorial_link: tutorial_link ?? null,
     }
     const { data, error } = await supabase
       .from('events')

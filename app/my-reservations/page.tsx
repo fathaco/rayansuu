@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
-import { CalendarCheck, Loader2, CheckCircle, Clock, XCircle, FileUp, ExternalLink } from 'lucide-react'
+import { CalendarCheck, Loader2, CheckCircle, Clock, XCircle, FileUp, ExternalLink, Copy, CreditCard, BookOpen } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { PAYMENT_INFO } from '@/lib/payment-info'
 import type { ReservationRow } from '@/types/database'
 import type { EventRow } from '@/types/database'
 
@@ -23,6 +24,13 @@ export default function MyReservationsPage() {
   const [reservations, setReservations] = useState<ReservationWithEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [uploadingId, setUploadingId] = useState<string | null>(null)
+  const [copiedField, setCopiedField] = useState<string | null>(null)
+
+  async function copyPaymentValue(key: string, value: string) {
+    await navigator.clipboard.writeText(value)
+    setCopiedField(key)
+    setTimeout(() => setCopiedField(null), 2000)
+  }
 
   function fetchReservations() {
     if (!session?.access_token) return Promise.resolve()
@@ -150,7 +158,48 @@ export default function MyReservationsPage() {
                         <span>التاريخ: {new Date(r.created_at).toLocaleDateString('ar-SA')}</span>
                       </div>
                     </div>
-                    {/* Payment: add image / view status */}
+                    {/* Payment info: where to transfer */}
+                    {showPaymentTask && (
+                      <div className="px-5 pb-4">
+                        <div className="rounded-xl border border-primary-200 bg-primary-50/50 p-4">
+                          <p className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                            <CreditCard className="w-4 h-4 text-primary-600" />
+                            معلومات التحويل
+                          </p>
+                          <ul className="space-y-2 text-sm">
+                            <li className="flex items-center justify-between gap-2 flex-row-reverse">
+                              <span className="text-gray-500 shrink-0">CCP</span>
+                              <span className="font-mono font-semibold text-gray-800 break-all">{PAYMENT_INFO.ccp}</span>
+                              <button type="button" onClick={() => copyPaymentValue('ccp', PAYMENT_INFO.ccp)} className="shrink-0 p-1 rounded hover:bg-primary-100 text-primary-600" title="نسخ">
+                                <Copy size={14} className={copiedField === 'ccp' ? 'text-emerald-600' : ''} />
+                              </button>
+                            </li>
+                            <li className="flex items-center justify-between gap-2 flex-row-reverse">
+                              <span className="text-gray-500 shrink-0">MLLE</span>
+                              <span className="font-semibold text-gray-800">{PAYMENT_INFO.name}</span>
+                              <button type="button" onClick={() => copyPaymentValue('name', PAYMENT_INFO.name)} className="shrink-0 p-1 rounded hover:bg-primary-100 text-primary-600" title="نسخ">
+                                <Copy size={14} className={copiedField === 'name' ? 'text-emerald-600' : ''} />
+                              </button>
+                            </li>
+                            <li className="flex items-center justify-between gap-2 flex-row-reverse">
+                              <span className="text-gray-500 shrink-0">Domaine</span>
+                              <span className="font-semibold text-gray-800 text-balance">{PAYMENT_INFO.domaine}</span>
+                              <button type="button" onClick={() => copyPaymentValue('domaine', PAYMENT_INFO.domaine)} className="shrink-0 p-1 rounded hover:bg-primary-100 text-primary-600" title="نسخ">
+                                <Copy size={14} className={copiedField === 'domaine' ? 'text-emerald-600' : ''} />
+                              </button>
+                            </li>
+                            <li className="flex items-center justify-between gap-2 flex-row-reverse">
+                              <span className="text-gray-500 shrink-0">Mob</span>
+                              <span className="font-mono font-semibold text-gray-800">{PAYMENT_INFO.mob}</span>
+                              <button type="button" onClick={() => copyPaymentValue('mob', PAYMENT_INFO.mob)} className="shrink-0 p-1 rounded hover:bg-primary-100 text-primary-600" title="نسخ">
+                                <Copy size={14} className={copiedField === 'mob' ? 'text-emerald-600' : ''} />
+                              </button>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                    {/* Payment proof: add image / view status */}
                     {showPaymentTask && (
                       <div className="px-5 pb-5">
                         <div className="rounded-xl border-2 border-dashed border-primary-200 bg-primary-50/30 p-4">
@@ -219,6 +268,27 @@ export default function MyReservationsPage() {
                               </div>
                             </div>
                           )}
+                        </div>
+                      </div>
+                    )}
+                    {/* Tutorial link: show only when confirmed */}
+                    {r.status === 'confirmed' && r.event?.tutorial_link && (
+                      <div className="px-5 pb-5">
+                        <div className="rounded-xl border-2 border-emerald-200 bg-emerald-50/50 p-4">
+                          <p className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                            <BookOpen className="w-4 h-4 text-emerald-600" />
+                            رابط الدورة/الدرس
+                          </p>
+                          <p className="text-sm text-gray-700 mb-3">تم تأكيد حجزك! يمكنك الآن الوصول إلى محتوى الدورة.</p>
+                          <a
+                            href={r.event.tutorial_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-500 text-white font-semibold hover:bg-emerald-600 transition-colors shadow-md"
+                          >
+                            <ExternalLink className="w-5 h-5" />
+                            فتح رابط الدورة
+                          </a>
                         </div>
                       </div>
                     )}

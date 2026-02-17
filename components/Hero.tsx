@@ -31,13 +31,17 @@ export default function Hero() {
 
           {/* CTA Buttons - pill style with shadow: purple = ابدأ رحلتك الآن, magenta = استكشف المنهج */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4 sm:gap-6 animate-fade-in-up animation-delay-600 max-w-sm sm:max-w-none mx-auto">
-            <button
-              type="button"
+            <a
+              href="#courses"
               className="hero-btn hero-btn-purple w-full sm:w-auto inline-flex items-center justify-center gap-2.5 text-white text-sm sm:text-base lg:text-lg font-bold py-3.5 sm:py-4 px-6 sm:px-8 min-h-[48px] rounded-full shadow-hero transition-all duration-300 hover:shadow-hero-hover hover:-translate-y-0.5"
+              onClick={(e) => {
+                e.preventDefault()
+                document.getElementById('courses')?.scrollIntoView({ behavior: 'smooth' })
+              }}
             >
               <GraduationCap size={20} className="sm:w-5 sm:h-5 flex-shrink-0" />
               <span>ابدأ رحلتك الآن</span>
-            </button>
+            </a>
             <button
               type="button"
               className="hero-btn hero-btn-magenta w-full sm:w-auto inline-flex items-center justify-center gap-2.5 text-white text-sm sm:text-base lg:text-lg font-bold py-3.5 sm:py-4 px-6 sm:px-8 min-h-[48px] rounded-full shadow-hero transition-all duration-300 hover:shadow-hero-hover hover:-translate-y-0.5"

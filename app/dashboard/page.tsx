@@ -3,12 +3,15 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { BookOpen, Check, X, Loader2, Calendar, Users, Clock, BarChart3, Plus, Menu as MenuIcon, Home, LogOut, Settings, TrendingUp, Pencil, Trash2, MessageCircle } from 'lucide-react'
+import { BookOpen, Check, X, Loader2, Calendar, Users, Clock, BarChart3, Plus, Menu as MenuIcon, Home, LogOut, Settings, TrendingUp, Pencil, Trash2, MessageCircle, HelpCircle, PanelBottom } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
 import type { EventRow } from '@/types/database'
 import type { ReservationRow } from '@/types/database'
 import type { ReviewRow } from '@/types/database'
+import type { FaqRow } from '@/types/database'
+import type { FooterSettingsRow } from '@/types/database'
+import { DEFAULT_FAQS } from '@/lib/faq-defaults'
 
 type ReservationWithEvent = ReservationRow & { event?: EventRow }
 
@@ -46,7 +49,7 @@ export default function DashboardPage() {
   const [formLoading, setFormLoading] = useState(false)
   const [imageUploading, setImageUploading] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'reservations' | 'create' | 'reviews'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'reservations' | 'create' | 'reviews' | 'faq' | 'footer'>('overview')
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const [confirmedId, setConfirmedId] = useState<string | null>(null)
   const [paymentConfirmingId, setPaymentConfirmingId] = useState<string | null>(null)
@@ -59,6 +62,16 @@ export default function DashboardPage() {
   const [reviewFormLoading, setReviewFormLoading] = useState(false)
   const [reviewImageUploading, setReviewImageUploading] = useState(false)
   const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null)
+  const [faqs, setFaqs] = useState<FaqRow[]>([])
+  const [faqsLoading, setFaqsLoading] = useState(true)
+  const [faqForm, setFaqForm] = useState({ question: '', answer: '' })
+  const [editingFaq, setEditingFaq] = useState<FaqRow | null>(null)
+  const [faqFormLoading, setFaqFormLoading] = useState(false)
+  const [deletingFaqId, setDeletingFaqId] = useState<string | null>(null)
+  const [importingFaqs, setImportingFaqs] = useState(false)
+  const [footerData, setFooterData] = useState<FooterSettingsRow | null>(null)
+  const [footerLoading, setFooterLoading] = useState(true)
+  const [footerSaving, setFooterSaving] = useState(false)
 
   const setTab = (tab: typeof activeTab) => {
     setActiveTab(tab)
@@ -75,6 +88,7 @@ export default function DashboardPage() {
     image_url: '',
     is_new: true,
     price: '',
+    tutorial_link: '',
   })
 
   // Require login + admin (when logged in, check admin)
@@ -151,6 +165,32 @@ export default function DashboardPage() {
     fetchReviews()
   }, [isAdmin])
 
+  function fetchFaqs() {
+    fetch('/api/faqs')
+      .then((r) => r.json())
+      .then((data) => setFaqs(Array.isArray(data) ? data : []))
+      .catch(() => setFaqs([]))
+      .finally(() => setFaqsLoading(false))
+  }
+
+  useEffect(() => {
+    if (!isAdmin) return
+    fetchFaqs()
+  }, [isAdmin])
+
+  function fetchFooter() {
+    fetch('/api/footer')
+      .then((r) => r.json())
+      .then((data) => setFooterData(data))
+      .catch(() => setFooterData(null))
+      .finally(() => setFooterLoading(false))
+  }
+
+  useEffect(() => {
+    if (!isAdmin) return
+    fetchFooter()
+  }, [isAdmin])
+
   // Realtime: when a reservation is updated (accept/decline) or inserted, refresh the list
   useEffect(() => {
     if (!isAdmin) return
@@ -181,6 +221,7 @@ export default function DashboardPage() {
             badge_color: form.badge_color || null,
             image_url: form.image_url || null,
             price: form.price || null,
+            tutorial_link: form.tutorial_link || null,
           }),
         })
         const data = await res.json()
@@ -197,6 +238,7 @@ export default function DashboardPage() {
             badge_color: form.badge_color || null,
             image_url: form.image_url || null,
             price: form.price || null,
+            tutorial_link: form.tutorial_link || null,
           }),
         })
         const data = await res.json()
@@ -214,6 +256,7 @@ export default function DashboardPage() {
         image_url: '',
         is_new: true,
         price: '',
+        tutorial_link: '',
       })
       setTab('events')
     } catch (err) {
@@ -236,6 +279,7 @@ export default function DashboardPage() {
       image_url: ev.image_url ?? '',
       is_new: ev.is_new,
       price: ev.price ?? '',
+      tutorial_link: ev.tutorial_link ?? '',
     })
     setTab('create')
   }
@@ -253,6 +297,7 @@ export default function DashboardPage() {
       image_url: '',
       is_new: true,
       price: '',
+      tutorial_link: '',
     })
     setTab('events')
   }
@@ -353,6 +398,187 @@ export default function DashboardPage() {
     } finally {
       setDeletingReviewId(null)
     }
+  }
+
+  async function handleCreateFaq(e: React.FormEvent) {
+    e.preventDefault()
+    if (!faqForm.question.trim() || !faqForm.answer.trim()) {
+      alert('السؤال والإجابة مطلوبان')
+      return
+    }
+    setFaqFormLoading(true)
+    try {
+      const res = await fetch('/api/faqs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ question: faqForm.question.trim(), answer: faqForm.answer.trim(), display_order: faqs.length }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'فشل في الإضافة')
+      setFaqs((prev) => [data, ...prev])
+      setFaqForm({ question: '', answer: '' })
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'حدث خطأ')
+    } finally {
+      setFaqFormLoading(false)
+    }
+  }
+
+  async function handleUpdateFaq(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editingFaq || !faqForm.question.trim() || !faqForm.answer.trim()) return
+    setFaqFormLoading(true)
+    try {
+      const res = await fetch(`/api/faqs/${editingFaq.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ question: faqForm.question.trim(), answer: faqForm.answer.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'فشل في التعديل')
+      setFaqs((prev) => prev.map((f) => (f.id === editingFaq.id ? data : f)))
+      setEditingFaq(null)
+      setFaqForm({ question: '', answer: '' })
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'حدث خطأ')
+    } finally {
+      setFaqFormLoading(false)
+    }
+  }
+
+  function startEditFaq(faq: FaqRow) {
+    setEditingFaq(faq)
+    setFaqForm({ question: faq.question, answer: faq.answer })
+    setTab('faq')
+  }
+
+  function cancelEditFaq() {
+    setEditingFaq(null)
+    setFaqForm({ question: '', answer: '' })
+  }
+
+  async function handleDeleteFaq(id: string) {
+    if (!confirm('حذف هذا السؤال؟')) return
+    setDeletingFaqId(id)
+    try {
+      const res = await fetch(`/api/faqs/${id}`, {
+        method: 'DELETE',
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || 'فشل في الحذف')
+      }
+      setFaqs((prev) => prev.filter((f) => f.id !== id))
+      if (editingFaq?.id === id) {
+        setEditingFaq(null)
+        setFaqForm({ question: '', answer: '' })
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'حدث خطأ')
+    } finally {
+      setDeletingFaqId(null)
+    }
+  }
+
+  async function handleImportDefaultFaqs() {
+    if (!confirm(`استيراد ${DEFAULT_FAQS.length} سؤالاً افتراضياً؟ سيتم إضافتها إلى القائمة ويمكنك تعديلها أو حذفها لاحقاً.`)) return
+    setImportingFaqs(true)
+    try {
+      const token = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}
+      for (let i = 0; i < DEFAULT_FAQS.length; i++) {
+        const res = await fetch('/api/faqs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...token },
+          body: JSON.stringify({ question: DEFAULT_FAQS[i].question, answer: DEFAULT_FAQS[i].answer, display_order: i }),
+        })
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          throw new Error(data.error || 'فشل في الإضافة')
+        }
+      }
+      fetchFaqs()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'حدث خطأ')
+    } finally {
+      setImportingFaqs(false)
+    }
+  }
+
+  async function handleSaveFooter(e: React.FormEvent) {
+    e.preventDefault()
+    if (!footerData) return
+    setFooterSaving(true)
+    try {
+      const res = await fetch('/api/footer', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({
+          tagline: footerData.tagline,
+          social_facebook: footerData.social_facebook,
+          social_youtube: footerData.social_youtube,
+          social_instagram: footerData.social_instagram,
+          social_twitter: footerData.social_twitter,
+          quick_links: footerData.quick_links,
+          sections: footerData.sections,
+          contact: footerData.contact,
+          copyright_text: footerData.copyright_text,
+          privacy_url: footerData.privacy_url,
+          terms_url: footerData.terms_url,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'فشل في الحفظ')
+      setFooterData(data)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'حدث خطأ')
+    } finally {
+      setFooterSaving(false)
+    }
+  }
+
+  function updateFooter<K extends keyof FooterSettingsRow>(key: K, value: FooterSettingsRow[K] | null) {
+    setFooterData((prev) => (prev ? { ...prev, [key]: value } : null))
+  }
+
+  function updateFooterLink(
+    key: 'quick_links' | 'sections' | 'contact',
+    index: number,
+    field: 'label' | 'href',
+    value: string
+  ) {
+    setFooterData((prev) => {
+      if (!prev) return null
+      const arr = [...(prev[key] || [])]
+      if (!arr[index]) return prev
+      arr[index] = { ...arr[index], [field]: value }
+      return { ...prev, [key]: arr }
+    })
+  }
+
+  function addFooterLink(key: 'quick_links' | 'sections' | 'contact') {
+    setFooterData((prev) => {
+      if (!prev) return null
+      const arr = [...(prev[key] || []), { label: '', href: '#' }]
+      return { ...prev, [key]: arr }
+    })
+  }
+
+  function removeFooterLink(key: 'quick_links' | 'sections' | 'contact', index: number) {
+    setFooterData((prev) => {
+      if (!prev) return null
+      const arr = (prev[key] || []).filter((_, i) => i !== index)
+      return { ...prev, [key]: arr }
+    })
   }
 
   async function handleDeleteEvent(id: string) {
@@ -647,6 +873,39 @@ export default function DashboardPage() {
                 </span>
               )}
             </button>
+
+            <button
+              type="button"
+              onClick={() => setTab('faq')}
+              className={`w-full flex items-center gap-3 px-4 py-3.5 min-h-[48px] rounded-xl font-medium transition-all ${
+                activeTab === 'faq'
+                  ? 'bg-gradient-primary text-white shadow-lg'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <HelpCircle className="w-5 h-5" />
+              <span>أسئلة متكررة</span>
+              {faqs.length > 0 && (
+                <span className={`mr-auto text-xs px-2 py-1 rounded-full ${
+                  activeTab === 'faq' ? 'bg-white/20' : 'bg-gray-200'
+                }`}>
+                  {faqs.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTab('footer')}
+              className={`w-full flex items-center gap-3 px-4 py-3.5 min-h-[48px] rounded-xl font-medium transition-all ${
+                activeTab === 'footer'
+                  ? 'bg-gradient-primary text-white shadow-lg'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <PanelBottom className="w-5 h-5" />
+              <span>إعدادات الفوتر</span>
+            </button>
           </nav>
 
           {/* Bottom Actions - touch-friendly */}
@@ -699,6 +958,8 @@ export default function DashboardPage() {
                   {activeTab === 'reservations' && 'إدارة الحجوزات'}
                   {activeTab === 'create' && 'إضافة فعالية جديدة'}
                   {activeTab === 'reviews' && 'المراجعات'}
+                  {activeTab === 'faq' && 'أسئلة متكررة لطالباتنا'}
+                  {activeTab === 'footer' && 'إعدادات الفوتر'}
                 </h1>
                 <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">مرحباً بك في لوحة التحكم</p>
               </div>
@@ -1236,6 +1497,18 @@ export default function DashboardPage() {
                     />
                   </div>
 
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">رابط الدورة/الدرس (اختياري)</label>
+                    <input
+                      type="url"
+                      value={form.tutorial_link}
+                      onChange={(e) => setForm((f) => ({ ...f, tutorial_link: e.target.value }))}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                      placeholder="https://example.com/tutorial أو رابط Google Drive/YouTube"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">سيظهر هذا الرابط للمستخدمين فقط بعد تأكيد حجزهم</p>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">الشارة (اختياري)</label>
                     <select
@@ -1424,6 +1697,208 @@ export default function DashboardPage() {
                       </div>
                     ))}
                   </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* FAQ Tab - أسئلة متكررة لطالباتنا */}
+          {activeTab === 'faq' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                <h2 className="text-base sm:text-lg font-bold text-gray-800 mb-4">
+                  {editingFaq ? 'تعديل السؤال والإجابة' : 'إضافة سؤال جديد'}
+                </h2>
+                <p className="text-sm text-gray-500 mb-4">
+                  أسئلة متكررة لطالباتنا — تظهر في قسم الأسئلة الشائعة في الموقع.
+                </p>
+                <form onSubmit={editingFaq ? handleUpdateFaq : handleCreateFaq} className="space-y-4 max-w-2xl">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">السؤال <span className="text-red-500">*</span></label>
+                    <input
+                      required
+                      value={faqForm.question}
+                      onChange={(e) => setFaqForm((f) => ({ ...f, question: e.target.value }))}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                      placeholder="مثال: كيف يمكنني التسجيل في المنصة؟"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">الإجابة <span className="text-red-500">*</span></label>
+                    <textarea
+                      required
+                      rows={4}
+                      value={faqForm.answer}
+                      onChange={(e) => setFaqForm((f) => ({ ...f, answer: e.target.value }))}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                      placeholder="اكتب الإجابة..."
+                    />
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      type="submit"
+                      disabled={faqFormLoading}
+                      className="min-h-[44px] px-5 py-2.5 rounded-xl bg-gradient-primary text-white font-semibold disabled:opacity-70 flex items-center gap-2"
+                    >
+                      {faqFormLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                      {editingFaq ? 'حفظ التعديلات' : 'إضافة السؤال'}
+                    </button>
+                    {editingFaq && (
+                      <button type="button" onClick={cancelEditFaq} className="min-h-[44px] px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-700 font-semibold hover:bg-gray-50">
+                        إلغاء
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </div>
+
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                <h2 className="text-base sm:text-lg font-bold text-gray-800 mb-4">جميع الأسئلة المتكررة</h2>
+                {faqsLoading ? (
+                  <div className="flex justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+                  </div>
+                ) : faqs.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500 mb-4">لا توجد أسئلة. أضف أول سؤال من النموذج أعلاه، أو استورد الأسئلة الافتراضية.</p>
+                    <button
+                      type="button"
+                      onClick={handleImportDefaultFaqs}
+                      disabled={importingFaqs}
+                      className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 disabled:opacity-70 transition-all"
+                    >
+                      {importingFaqs ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+                      استورد الأسئلة الافتراضية ({DEFAULT_FAQS.length} سؤالاً)
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {faqs.map((faq) => (
+                      <div key={faq.id} className="rounded-xl border border-gray-200 p-4 flex flex-col gap-2">
+                        <p className="text-gray-800 font-semibold">{faq.question}</p>
+                        <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">{faq.answer}</p>
+                        <div className="flex gap-2 pt-2 border-t border-gray-100">
+                          <button type="button" onClick={() => startEditFaq(faq)} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100 text-sm font-medium">
+                            <Pencil className="w-4 h-4" /> تعديل
+                          </button>
+                          <button type="button" onClick={() => handleDeleteFaq(faq.id)} disabled={deletingFaqId === faq.id} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm font-medium disabled:opacity-70">
+                            {deletingFaqId === faq.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} حذف
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Footer Tab */}
+          {activeTab === 'footer' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                <h2 className="text-base sm:text-lg font-bold text-gray-800 mb-4">إعدادات الفوتر</h2>
+                <p className="text-sm text-gray-500 mb-6">عدّل نصوص وروابط الفوتر الظاهرة في أسفل الموقع.</p>
+                {footerLoading ? (
+                  <div className="flex justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+                  </div>
+                ) : footerData ? (
+                  <form onSubmit={handleSaveFooter} className="space-y-6 max-w-2xl">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">وصف المنصة (تحت الشعار) (اختياري)</label>
+                      <textarea
+                        value={footerData.tagline ?? ''}
+                        onChange={(e) => updateFooter('tagline', e.target.value || null)}
+                        rows={2}
+                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="منصة فتحة الإلكترونية هي الوجهة الأولى..."
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">فيسبوك (اختياري)</label>
+                        <input type="text" value={footerData.social_facebook ?? ''} onChange={(e) => updateFooter('social_facebook', e.target.value || null)} placeholder="https://..." className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">يوتيوب (اختياري)</label>
+                        <input type="text" value={footerData.social_youtube ?? ''} onChange={(e) => updateFooter('social_youtube', e.target.value || null)} placeholder="https://..." className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">انستغرام (اختياري)</label>
+                        <input type="text" value={footerData.social_instagram ?? ''} onChange={(e) => updateFooter('social_instagram', e.target.value || null)} placeholder="https://..." className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">تويتر (اختياري)</label>
+                        <input type="text" value={footerData.social_twitter ?? ''} onChange={(e) => updateFooter('social_twitter', e.target.value || null)} placeholder="https://..." className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500" />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-sm font-semibold text-gray-700">روابط سريعة</label>
+                        <button type="button" onClick={() => addFooterLink('quick_links')} className="text-sm text-primary-600 font-medium">+ إضافة</button>
+                      </div>
+                      <div className="space-y-2">
+                        {(footerData.quick_links || []).map((link, i) => (
+                          <div key={i} className="flex gap-2 items-center">
+                            <input placeholder="النص" value={link.label} onChange={(e) => updateFooterLink('quick_links', i, 'label', e.target.value)} className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm" />
+                            <input placeholder="الرابط" value={link.href} onChange={(e) => updateFooterLink('quick_links', i, 'href', e.target.value)} className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm" />
+                            <button type="button" onClick={() => removeFooterLink('quick_links', i)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-sm font-semibold text-gray-700">الأقسام العلمية</label>
+                        <button type="button" onClick={() => addFooterLink('sections')} className="text-sm text-primary-600 font-medium">+ إضافة</button>
+                      </div>
+                      <div className="space-y-2">
+                        {(footerData.sections || []).map((link, i) => (
+                          <div key={i} className="flex gap-2 items-center">
+                            <input placeholder="النص" value={link.label} onChange={(e) => updateFooterLink('sections', i, 'label', e.target.value)} className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm" />
+                            <input placeholder="الرابط" value={link.href} onChange={(e) => updateFooterLink('sections', i, 'href', e.target.value)} className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm" />
+                            <button type="button" onClick={() => removeFooterLink('sections', i)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-sm font-semibold text-gray-700">تواصل معنا</label>
+                        <button type="button" onClick={() => addFooterLink('contact')} className="text-sm text-primary-600 font-medium">+ إضافة</button>
+                      </div>
+                      <div className="space-y-2">
+                        {(footerData.contact || []).map((link, i) => (
+                          <div key={i} className="flex gap-2 items-center">
+                            <input placeholder="النص (مثال: البريد أو الهاتف)" value={link.label} onChange={(e) => updateFooterLink('contact', i, 'label', e.target.value)} className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm" />
+                            <input placeholder="الرابط (mailto: أو tel:)" value={link.href} onChange={(e) => updateFooterLink('contact', i, 'href', e.target.value)} className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm" />
+                            <button type="button" onClick={() => removeFooterLink('contact', i)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">نص حقوق النشر (اختياري)</label>
+                      <input type="text" value={footerData.copyright_text ?? ''} onChange={(e) => updateFooter('copyright_text', e.target.value || null)} className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500" placeholder="© 2025 فتحة. جميع الحقوق محفوظة." />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">رابط سياسة الخصوصية (اختياري)</label>
+                        <input type="text" value={footerData.privacy_url ?? ''} onChange={(e) => updateFooter('privacy_url', e.target.value || null)} placeholder="https://..." className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">رابط الشروط والأحكام (اختياري)</label>
+                        <input type="text" value={footerData.terms_url ?? ''} onChange={(e) => updateFooter('terms_url', e.target.value || null)} placeholder="https://..." className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500" />
+                      </div>
+                    </div>
+                    <button type="submit" disabled={footerSaving} className="min-h-[48px] px-6 py-3 rounded-xl bg-gradient-primary text-white font-semibold disabled:opacity-70 flex items-center gap-2">
+                      {footerSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+                      حفظ إعدادات الفوتر
+                    </button>
+                  </form>
+                ) : (
+                  <p className="text-gray-500">تعذر تحميل إعدادات الفوتر. تأكد من تشغيل migration إعدادات الفوتر.</p>
                 )}
               </div>
             </div>

@@ -43,6 +43,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       image_url,
       is_new,
       price,
+      tutorial_link,
     } = body
     const payload: EventUpdate = {}
     if (title !== undefined) payload.title = title
@@ -55,6 +56,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (image_url !== undefined) payload.image_url = image_url ?? null
     if (is_new !== undefined) payload.is_new = is_new
     if (price !== undefined) payload.price = price ?? null
+    if (tutorial_link !== undefined) payload.tutorial_link = tutorial_link ?? null
     if (Object.keys(payload).length === 0) {
       return NextResponse.json({ error: 'لا توجد حقول للتحديث' }, { status: 400 })
     }
