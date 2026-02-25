@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { BookOpen, Check, X, Loader2, Calendar, Users, Clock, BarChart3, Plus, Menu as MenuIcon, Home, LogOut, Settings, TrendingUp, Pencil, Trash2, MessageCircle, HelpCircle, PanelBottom } from 'lucide-react'
+import { BookOpen, Check, X, Loader2, Calendar, Users, Clock, BarChart3, Plus, Menu as MenuIcon, Home, LogOut, Settings, TrendingUp, Pencil, Trash2, MessageCircle, HelpCircle, PanelBottom, Link2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
 import type { EventRow } from '@/types/database'
@@ -49,7 +49,7 @@ export default function DashboardPage() {
   const [formLoading, setFormLoading] = useState(false)
   const [imageUploading, setImageUploading] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'reservations' | 'create' | 'reviews' | 'faq' | 'footer'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'reservations' | 'create' | 'reviews' | 'faq' | 'footer' | 'community'>('overview')
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const [confirmedId, setConfirmedId] = useState<string | null>(null)
   const [paymentConfirmingId, setPaymentConfirmingId] = useState<string | null>(null)
@@ -72,6 +72,7 @@ export default function DashboardPage() {
   const [footerData, setFooterData] = useState<FooterSettingsRow | null>(null)
   const [footerLoading, setFooterLoading] = useState(true)
   const [footerSaving, setFooterSaving] = useState(false)
+  const [communitySaveSuccess, setCommunitySaveSuccess] = useState(false)
 
   const setTab = (tab: typeof activeTab) => {
     setActiveTab(tab)
@@ -562,6 +563,7 @@ export default function DashboardPage() {
           copyright_text: footerData.copyright_text,
           privacy_url: footerData.privacy_url,
           terms_url: footerData.terms_url,
+          community_link: footerData.community_link,
         }),
       })
       const data = await res.json()
@@ -935,6 +937,19 @@ export default function DashboardPage() {
               <PanelBottom className="w-5 h-5" />
               <span>إعدادات الفوتر</span>
             </button>
+
+            <button
+              type="button"
+              onClick={() => setTab('community')}
+              className={`w-full flex items-center gap-3 px-4 py-3.5 min-h-[48px] rounded-xl font-medium transition-all ${
+                activeTab === 'community'
+                  ? 'bg-gradient-primary text-white shadow-lg'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <Link2 className="w-5 h-5" />
+              <span>رابط المجتمع</span>
+            </button>
           </nav>
 
           {/* Bottom Actions - touch-friendly */}
@@ -989,6 +1004,7 @@ export default function DashboardPage() {
                   {activeTab === 'reviews' && 'المراجعات'}
                   {activeTab === 'faq' && 'أسئلة متكررة لطالباتنا'}
                   {activeTab === 'footer' && 'إعدادات الفوتر'}
+                  {activeTab === 'community' && 'رابط المجتمع'}
                 </h1>
                 <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">مرحباً بك في لوحة التحكم</p>
               </div>
@@ -1928,6 +1944,85 @@ export default function DashboardPage() {
                   </form>
                 ) : (
                   <p className="text-gray-500">تعذر تحميل إعدادات الفوتر. تأكد من تشغيل migration إعدادات الفوتر.</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Community Link Tab - رابط المجتمع (مجتمع أخوات داعم) */}
+          {activeTab === 'community' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                <h2 className="text-base sm:text-lg font-bold text-gray-800 mb-2">رابط مجتمع أخوات داعم</h2>
+                <p className="text-sm text-gray-500 mb-4">
+                  الرابط الذي يفتح عند النقر على بطاقة «مجتمع أخوات داعم» في قسم مميزات منصتنا للنساء بالرئيسية.
+                </p>
+                {footerLoading ? (
+                  <div className="flex justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+                  </div>
+                ) : (
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault()
+                      if (!footerData) return
+                      setFooterSaving(true)
+                      try {
+                        const res = await fetch('/api/footer', {
+                          method: 'PATCH',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+                          },
+                          body: JSON.stringify({ community_link: footerData.community_link ?? null }),
+                        })
+                        const data = await res.json()
+                        if (!res.ok) throw new Error(data.error || 'فشل في الحفظ')
+                        setFooterData(data)
+                        setCommunitySaveSuccess(true)
+                        setTimeout(() => setCommunitySaveSuccess(false), 2500)
+                      } catch (err) {
+                        alert(err instanceof Error ? err.message : 'حدث خطأ')
+                      } finally {
+                        setFooterSaving(false)
+                      }
+                    }}
+                    className="space-y-4 max-w-2xl"
+                  >
+                    {communitySaveSuccess && (
+                      <div
+                        role="alert"
+                        className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 animate-[fade-in_0.3s_ease-out]"
+                      >
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center">
+                          <Check className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-semibold">تم الحفظ بنجاح</p>
+                          <p className="text-sm text-emerald-700">تم تحديث رابط المجتمع.</p>
+                        </div>
+                      </div>
+                    )}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">رابط المجتمع</label>
+                      <input
+                        type="url"
+                        value={footerData?.community_link ?? ''}
+                        onChange={(e) => updateFooter('community_link', e.target.value || null)}
+                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                        placeholder="https://example.com/community أو رابط مجموعة واتساب/تيليجرام"
+                        dir="ltr"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={footerSaving}
+                      className="min-h-[48px] px-6 py-3 rounded-xl bg-gradient-primary text-white font-semibold disabled:opacity-70 flex items-center gap-2"
+                    >
+                      {footerSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+                      حفظ رابط المجتمع
+                    </button>
+                  </form>
                 )}
               </div>
             </div>

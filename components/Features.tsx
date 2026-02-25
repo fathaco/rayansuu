@@ -1,7 +1,10 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Award, Users, BookOpen, Library, Video, Clock } from 'lucide-react'
 import ScrollReveal from './ScrollReveal'
+
+const COMMUNITY_FEATURE_TITLE = 'مجتمع أخوات داعم'
 
 const features = [
   {
@@ -43,6 +46,17 @@ const features = [
 ]
 
 export default function Features() {
+  const [communityLink, setCommunityLink] = useState<string | null>(null)
+  useEffect(() => {
+    fetch('/api/footer')
+      .then((r) => r.json())
+      .then((data: { community_link?: string | null }) => {
+        const link = data.community_link?.trim() || null
+        setCommunityLink(link || null)
+      })
+      .catch(() => setCommunityLink(null))
+  }, [])
+
   return (
     <section id="features" className="py-12 sm:py-16 lg:py-20 bg-white">
       <div className="container mx-auto px-4 sm:px-5 lg:px-8">
@@ -64,6 +78,12 @@ export default function Features() {
         <div className="cards-grid-3">
           {features.map((feature, index) => {
             const Icon = feature.icon
+            const isCommunityCard = feature.title === COMMUNITY_FEATURE_TITLE
+            const href = isCommunityCard && communityLink ? communityLink : undefined
+            const Wrapper = href ? 'a' : 'div'
+            const wrapperProps = href
+              ? { href, target: '_blank', rel: 'noopener noreferrer' }
+              : {}
             return (
               <ScrollReveal
                 key={index}
@@ -71,10 +91,11 @@ export default function Features() {
                 delay={index * 80}
                 className="h-full min-w-0"
               >
-                <div
+                <Wrapper
+                  {...wrapperProps}
                   className="group relative bg-white border border-gray-100 rounded-xl sm:rounded-2xl p-5 sm:p-6 lg:p-8 
                            transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl 
-                           hover:border-t-4 hover:border-t-primary-500 cursor-pointer h-full overflow-hidden min-w-0"
+                           hover:border-t-4 hover:border-t-primary-500 cursor-pointer h-full overflow-hidden min-w-0 block"
                 >
                   <div className="mb-4 sm:mb-6 inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 
                                 rounded-xl sm:rounded-2xl bg-gradient-primary text-white 
@@ -89,7 +110,7 @@ export default function Features() {
                   </p>
                   <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-5 
                                 rounded-xl sm:rounded-2xl transition-opacity duration-300 pointer-events-none" />
-                </div>
+                </Wrapper>
               </ScrollReveal>
             )
           })}

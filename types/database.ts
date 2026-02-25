@@ -148,6 +148,7 @@ export interface Database {
           copyright_text: string | null
           privacy_url: string | null
           terms_url: string | null
+          community_link: string | null
           updated_at: string
         }
         Insert: {
@@ -163,6 +164,7 @@ export interface Database {
           copyright_text?: string | null
           privacy_url?: string | null
           terms_url?: string | null
+          community_link?: string | null
           updated_at?: string
         }
         Update: {
@@ -178,6 +180,7 @@ export interface Database {
           copyright_text?: string | null
           privacy_url?: string | null
           terms_url?: string | null
+          community_link?: string | null
           updated_at?: string
         }
       }

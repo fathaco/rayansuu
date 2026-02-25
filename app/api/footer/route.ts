@@ -45,6 +45,7 @@ export async function PATCH(request: Request) {
     if (body.copyright_text !== undefined) payload.copyright_text = body.copyright_text ?? null
     if (body.privacy_url !== undefined) payload.privacy_url = body.privacy_url ?? null
     if (body.terms_url !== undefined) payload.terms_url = body.terms_url ?? null
+    if (body.community_link !== undefined) payload.community_link = body.community_link ?? null
     if (Object.keys(payload).length === 0) {
       return NextResponse.json({ error: 'لا توجد حقول للتحديث' }, { status: 400 })
     }
