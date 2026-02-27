@@ -3,6 +3,7 @@ import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 import AdminRedirectToDashboard from '@/components/AdminRedirectToDashboard'
 import SplashWrapper from '@/components/SplashWrapper'
+import VideoNotificationModal from '@/components/VideoNotificationModal'
 
 export const metadata: Metadata = {
   title: 'فتحة - منصة العلوم الشرعية الرقمية',
@@ -27,6 +28,7 @@ export default function RootLayout({
         <AuthProvider>
           <SplashWrapper>
             <AdminRedirectToDashboard />
+            <VideoNotificationModal />
             {children}
           </SplashWrapper>
         </AuthProvider>

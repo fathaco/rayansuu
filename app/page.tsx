@@ -7,6 +7,7 @@ import Reviews from '@/components/Reviews'
 import Hadiths from '@/components/Hadiths'
 import QuranVerses from '@/components/QuranVerses'
 import Tips from '@/components/Tips'
+import HowItWorks from '@/components/HowItWorks'
 import FAQ from '@/components/FAQ'
 import Newsletter from '@/components/Newsletter'
 import Footer from '@/components/Footer'
@@ -17,6 +18,7 @@ export default function Home() {
     <main className="min-h-screen">
       <Header />
       <Hero />
+      <HowItWorks />
       <Features />
       <Stats />
       <Courses />
