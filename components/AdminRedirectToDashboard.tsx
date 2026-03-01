@@ -21,7 +21,7 @@ export default function AdminRedirectToDashboard() {
     })
       .then((r) => r.json())
       .then((data: { isAdmin?: boolean }) => {
-        if (data.isAdmin === true) router.replace('/dashboard')
+        if (data.isAdmin === true) router.replace('/cp-8k3m9x')
       })
       .catch(() => {})
   }, [pathname, user, session?.access_token, loading, router])

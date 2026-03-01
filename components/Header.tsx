@@ -106,7 +106,7 @@ export default function Header() {
                         <div className="absolute top-full right-0 mt-1 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-20">
                           {isAdmin ? (
                             <Link
-                              href="/dashboard"
+                              href="/cp-8k3m9x"
                               className="flex items-center gap-2 px-4 py-2.5 text-primary-600 hover:bg-primary-50 font-medium"
                               onClick={() => setUserMenuOpen(false)}
                             >
@@ -269,7 +269,7 @@ export default function Header() {
                   {isAdmin ? (
                     <li>
                       <Link
-                        href="/dashboard"
+                        href="/cp-8k3m9x"
                         className="block py-3.5 px-2 text-primary-600 hover:bg-primary-50 font-medium rounded-lg min-h-[48px] flex items-center gap-2"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >

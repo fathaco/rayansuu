@@ -700,7 +700,7 @@ export default function DashboardPage() {
       return
     }
     // Redirect so the page re-mounts with the new session and admin check runs; user then sees dashboard
-    router.replace('/dashboard')
+    router.replace('/cp-8k3m9x')
   }
 
   // Calculate stats
