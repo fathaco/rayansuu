@@ -18,10 +18,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'جلسة غير صالحة' }, { status: 401 })
   }
 
+  // Signup stores email lowercased; auth may return mixed case.
+  const emailNorm = user.email.trim().toLowerCase()
+
   const { data, error } = await supabase
     .from('reservations')
     .select('*')
-    .eq('email', user.email)
+    .eq('email', emailNorm)
     .order('created_at', { ascending: false })
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 })
