@@ -6,6 +6,19 @@ const nextConfig = {
       { source: '/dashboard', destination: '/', permanent: true },
     ]
   },
+  async headers() {
+    return [
+      {
+        source: '/my-reservations',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'private, no-cache, no-store, max-age=0, must-revalidate',
+          },
+        ],
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig
